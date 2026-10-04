@@ -5,6 +5,7 @@ namespace App\Livewire\Publicaciones;
 use App\Models\Publication;
 use App\Models\PublicationType;
 use App\Models\ResearchGroup;
+use App\Queries\Publicaciones\PublicationIndexQuery;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
@@ -112,60 +113,13 @@ class IndexPublicaciones extends Component
      */
     public function getPublicationsQueryProperty()
     {
-        $term = trim($this->search);
-        $year = trim($this->filterYear);
-        $type = trim($this->filterType);
-        $group = trim($this->filterGroup);
-        $author = trim($this->filterAuthor);
-
-        return Publication::query()
-            ->with([
-                'type',
-                'researchers.researchGroup.institution',
-                'article.journal',
-                'book.bookType',
-            ])
-            // Filtro de búsqueda por texto (insensible a mayúsculas)
-            ->when($term !== '', function ($query) use ($term) {
-                $like = '%' . strtolower($term) . '%';
-                $query->where(function ($inner) use ($like) {
-                    $inner->whereRaw('LOWER(title) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(publication_year) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(scope) LIKE ?', [$like])
-                        ->orWhereHas('type', function ($type) use ($like) {
-                            $type->whereRaw('LOWER(type_name) LIKE ?', [$like]);
-                        })
-                        ->orWhereHas('researchers', function ($researcher) use ($like) {
-                            $researcher->whereRaw('LOWER(name_1) LIKE ?', [$like])
-                                ->orWhereRaw('LOWER(last_name_1) LIKE ?', [$like]);
-                        });
-                });
-            })
-            // Filtro por año
-            ->when($year !== '', function ($query) use ($year) {
-                $query->where('publication_year', $year);
-            })
-            // Filtro por tipo de publicación - CORREGIDO
-            ->when($type !== '', function ($query) use ($type) {
-                $query->where('publication_type_id', $type);
-            })
-            // Filtro por grupo de investigación - CORREGIDO
-            ->when($group !== '', function ($query) use ($group) {
-                $query->whereHas('researchers.researchGroup', function ($q) use ($group) {
-                    $q->where('research_group_id', $group);
-                });
-            })
-            // Filtro por autor (insensible a mayúsculas)
-            ->when($author !== '', function ($query) use ($author) {
-                $like = '%' . strtolower($author) . '%';
-                $query->whereHas('researchers', function ($q) use ($like) {
-                    $q->whereRaw('LOWER(name_1) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(name_2) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(last_name_1) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(last_name_2) LIKE ?', [$like]);
-                });
-            })
-            ->orderByDesc('publication_id');
+        return app(PublicationIndexQuery::class)->build([
+            'search' => $this->search,
+            'year' => $this->filterYear,
+            'type' => $this->filterType,
+            'group' => $this->filterGroup,
+            'author' => $this->filterAuthor,
+        ]);
     }
 
     /**

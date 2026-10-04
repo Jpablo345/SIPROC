@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Publicaciones;
 
-use App\Models\Article;
-use App\Models\Book;
+use App\Actions\Publicaciones\CreateResearcherAction;
+use App\Actions\Publicaciones\SavePublicationAction;
 use App\Models\BookType;
 use App\Models\Institution;
 use App\Models\Journal;
@@ -11,8 +11,6 @@ use App\Models\Publication;
 use App\Models\PublicationType;
 use App\Models\ResearchGroup;
 use App\Models\Researcher;
-use App\Models\ResearcherPublication;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
@@ -213,52 +211,9 @@ class FormularioPublicacion extends Component
     {
         $data = $this->validate($this->modalRules(), $this->modalMessages());
 
-        $name1 = trim($data['modal_name_1']);
-        $lastName1 = trim($data['modal_last_name_1']);
+        $newResearcher = app(CreateResearcherAction::class)->execute($data);
 
-        // Ejecutamos la transacción y hacemos que retorne el ID asignado por la BD
-        $newResearcherId = DB::transaction(function () use ($data, $name1, $lastName1) {
-            $institutionId = $data['modal_institution_id'] ?? null;
-
-            if ($data['modal_create_institution']) {
-                $institution = Institution::create([
-                    'institution_name' => trim($data['modal_institution_name']),
-                    'institution_type' => $data['modal_institution_type'],
-                    'country' => $data['modal_institution_country'],
-                    'city' => $data['modal_institution_city'],
-                    'website' => $data['modal_institution_website'],
-                ]);
-
-                $institutionId = $institution->institution_id;
-            }
-
-            $groupCode = $data['modal_cod_minciencias'] ?? null;
-
-            if ($data['modal_create_group']) {
-                $group = ResearchGroup::create([
-                    'cod_minciencias' => trim($data['modal_group_code']),
-                    'group_name' => trim($data['modal_group_name']),
-                    'group_classification' => $data['modal_group_classification'],
-                    'institution_id' => $institutionId,
-                ]);
-
-                $groupCode = $group->cod_minciencias;
-            }
-
-            // Insertamos el investigador y guardamos el documento en su nueva columna
-            $researcher = Researcher::create([
-                'document' => !empty($data['modal_document']) ? trim($data['modal_document']) : null,
-                'name_1' => $name1,
-                'last_name_1' => $lastName1,
-                'cod_minciencias' => $groupCode,
-            ]);
-
-            // Retornamos el ID autoincremental de la base de datos
-            return $researcher->researcher_id;
-        });
-
-        // Agregamos el autor usando el ID numérico recién generado
-        $this->agregarAutor((string) $newResearcherId);
+        $this->agregarAutor((string) $newResearcher->researcher_id);
 
         $this->dispatch('close-modal', name: 'crear-investigador');
         $this->resetModalFields();
@@ -268,56 +223,30 @@ class FormularioPublicacion extends Component
     {
         $data = $this->validate($this->rules(), $this->messages());
 
-        DB::transaction(function () use ($data) {
-            $publicationData = [
+        app(SavePublicationAction::class)->execute(
+            publicationData: [
                 'title' => $data['title'],
                 'publication_year' => $data['publication_year'] ?? null,
                 'scope' => $data['scope'] ?? null,
                 'country_publication' => $data['country_publication'] ?? null,
                 'url' => $data['url'] ?? null,
                 'type_id' => $data['type_id'] ?? null,
-            ];
-
-            if ($this->publicationId) {
-                Publication::where('publication_id', $this->publicationId)->update($publicationData);
-                $publicationId = $this->publicationId;
-            } else {
-                $publication = Publication::create($publicationData);
-                $publicationId = $publication->publication_id;
-            }
-
-            if ($this->isArticleType()) {
-                Book::where('publication_id', $publicationId)->delete();
-                Article::updateOrCreate(
-                    ['publication_id' => $publicationId],
-                    ['journal_issn' => $data['journal_issn'], 'doi' => $data['doi'] ?? null]
-                );
-            } elseif ($this->isBookType()) {
-                Article::where('publication_id', $publicationId)->delete();
-                Book::updateOrCreate(
-                    ['publication_id' => $publicationId],
-                    [
-                        'book_isbn' => $data['book_isbn'],
-                        'means_of_dissemination' => $data['means_of_dissemination'] ?? null,
-                        'editorial' => $data['editorial'] ?? null,
-                        'book_type_id' => $data['book_type_id'] ?? null,
-                    ]
-                );
-            } else {
-                Article::where('publication_id', $publicationId)->delete();
-                Book::where('publication_id', $publicationId)->delete();
-            }
-
-            ResearcherPublication::where('publication_id', $publicationId)->delete();
-
-            foreach ($this->selectedAuthors as $index => $author) {
-                ResearcherPublication::create([
-                    'publication_id' => $publicationId,
-                    'researcher_id' => $author['researcher_id'],
-                    'author_order' => $index + 1,
-                ]);
-            }
-        });
+            ],
+            articleData: [
+                'journal_issn' => $data['journal_issn'] ?? null,
+                'doi' => $data['doi'] ?? null,
+            ],
+            bookData: [
+                'book_isbn' => $data['book_isbn'] ?? null,
+                'means_of_dissemination' => $data['means_of_dissemination'] ?? null,
+                'editorial' => $data['editorial'] ?? null,
+                'book_type_id' => $data['book_type_id'] ?? null,
+            ],
+            selectedAuthors: $this->selectedAuthors,
+            publicationId: $this->publicationId,
+            isArticle: $this->isArticleType(),
+            isBook: $this->isBookType(),
+        );
 
         $this->resetForm();
         session()->flash('status', 'Publicacion guardada.');
