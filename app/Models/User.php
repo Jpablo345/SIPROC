@@ -7,12 +7,12 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
+use Spatie\OneTimePasswords\Models\Concerns\HasOneTimePasswords;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable,HasRoles;
+    use HasFactory, Notifiable, HasOneTimePasswords;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +22,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'user_type',
+        'code',
         'password',
     ];
 

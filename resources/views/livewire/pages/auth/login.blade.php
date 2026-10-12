@@ -48,6 +48,15 @@ new #[Layout('layouts.guest')] class extends Component {
             </div>
 
             <div>
+                <x-input-label for="code" :value="__('Código')" class="font-bold text-zinc-700" />
+                <x-text-input wire:model="form.code" id="code"
+                    class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500"
+                    type="text" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="7"
+                    x-on:input="$el.value = $el.value.replace(/\D/g, '')" required />
+                <x-input-error :messages="$errors->get('form.code')" class="mt-2 text-red-600" />
+            </div>
+
+            <div>
                 <x-input-label for="password" :value="__('Contraseña')" class="font-bold text-zinc-700" />
                 <x-text-input wire:model="form.password" id="password"
                     class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500"
