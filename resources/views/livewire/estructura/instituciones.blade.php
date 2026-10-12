@@ -41,6 +41,7 @@ new class extends Component {
     public function edit(int $institutionId): void
     {
         $institution = Institution::findOrFail($institutionId);
+        $this->authorize('update', $institution);
 
         $this->editingId = $institution->institution_id;
         $this->institution_name = $institution->institution_name;
@@ -57,6 +58,11 @@ new class extends Component {
 
     public function save(): void
     {
+        if ($this->editingId) {
+            $this->authorize('update', Institution::findOrFail($this->editingId));
+        } else {
+            $this->authorize('create', Institution::class);
+        }
         $data = $this->validate();
 
         if ($this->editingId) {
@@ -72,7 +78,11 @@ new class extends Component {
 
     public function delete(int $institutionId): void
     {
-        Institution::where('institution_id', $institutionId)->delete();
+        //Institution::where('institution_id', $institutionId)->delete();
+        $institution = Institution::findOrFail($institutionId);
+        $this->authorize('delete', $institution);
+        $institution->delete();
+
         session()->flash('status', 'Institución eliminada.');
         $this->resetPage();
     }
@@ -135,18 +145,23 @@ new class extends Component {
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div>
-                <x-input-label for="institution_name" :value="'Nombre'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
-                <x-text-input id="institution_name" wire:model="institution_name" type="text" class="mt-2 block w-full" />
+                <x-input-label for="institution_name" :value="'Nombre'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-text-input id="institution_name" wire:model="institution_name" type="text"
+                    class="mt-2 block w-full" />
                 <x-input-error :messages="$errors->get('institution_name')" class="mt-2" />
             </div>
             <div>
-                <x-input-label for="institution_type" :value="'Tipo'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
-                <x-text-input id="institution_type" wire:model="institution_type" type="text" class="mt-2 block w-full" />
+                <x-input-label for="institution_type" :value="'Tipo'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-text-input id="institution_type" wire:model="institution_type" type="text"
+                    class="mt-2 block w-full" />
                 <x-input-error :messages="$errors->get('institution_type')" class="mt-2" />
             </div>
-            
+
             <div>
-                <x-input-label for="country" :value="'País'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="country" :value="'País'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
 
                 @php
                     $paises = config('paises');
@@ -170,13 +185,16 @@ new class extends Component {
             </div>
 
             <div>
-                <x-input-label for="city" :value="'Ciudad'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="city" :value="'Ciudad'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="city" wire:model="city" type="text" class="mt-2 block w-full" />
                 <x-input-error :messages="$errors->get('city')" class="mt-2" />
             </div>
             <div class="md:col-span-2">
-                <x-input-label for="website" :value="'Sitio web'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
-                <x-text-input id="website" wire:model="website" type="url" placeholder="https://" class="mt-2 block w-full" />
+                <x-input-label for="website" :value="'Sitio web'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-text-input id="website" wire:model="website" type="url" placeholder="https://"
+                    class="mt-2 block w-full" />
                 <x-input-error :messages="$errors->get('website')" class="mt-2" />
             </div>
         </div>
@@ -186,10 +204,13 @@ new class extends Component {
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h3 class="text-lg font-semibold text-[#2b2323]">Instituciones registradas</h3>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">{{ $this->institutions->total() }} registros</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
+                    {{ $this->institutions->total() }} registros
+                </p>
             </div>
             <div class="w-full sm:w-72">
-                <x-text-input wire:model.live="search" type="search" placeholder="Buscar por nombre, ciudad o tipo" class="w-full" />
+                <x-text-input wire:model.live="search" type="search" placeholder="Buscar por nombre, ciudad o tipo"
+                    class="w-full" />
             </div>
         </div>
 

@@ -26,6 +26,7 @@ new class extends Component {
     public function edit(int $publicationId): void
     {
         $publication = Publication::findOrFail($publicationId);
+        $this->authorize('update', $publication);
 
         $this->editingId = $publication->publication_id;
         $this->title = $publication->title;
@@ -43,6 +44,11 @@ new class extends Component {
 
     public function save(): void
     {
+        if ($this->editingId) {
+            $this->authorize('update', Publication::findOrFail($this->editingId));
+        } else {
+            $this->authorize('create', Publication::class);
+        }
         if (trim($this->title) === '') {
             session()->flash('status', 'Completa el titulo de la publicacion.');
             return;
@@ -70,7 +76,11 @@ new class extends Component {
 
     public function delete(int $publicationId): void
     {
-        Publication::where('publication_id', $publicationId)->delete();
+        //Publication::where('publication_id', $publicationId)->delete();
+        $publication = Publication::findOrFail($publicationId);
+        $this->authorize('delete', $publication);
+        $publication->delete();
+
         session()->flash('status', 'Publicacion eliminada.');
         $this->resetPage();
     }
@@ -145,15 +155,19 @@ new class extends Component {
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div class="md:col-span-2">
-                <x-input-label for="title" :value="'Titulo'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="title" :value="'Titulo'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="title" wire:model.defer="title" type="text" class="mt-2 block w-full" />
             </div>
             <div>
-                <x-input-label for="publication_year" :value="'Ano de publicacion'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
-                <x-text-input id="publication_year" wire:model.defer="publication_year" type="text" class="mt-2 block w-full" />
+                <x-input-label for="publication_year" :value="'Ano de publicacion'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-text-input id="publication_year" wire:model.defer="publication_year" type="text"
+                    class="mt-2 block w-full" />
             </div>
             <div>
-                <x-input-label for="scope" :value="'Alcance'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="scope" :value="'Alcance'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <select id="scope" wire:model.defer="scope"
                     class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
                     <option value="">Sin definir</option>
@@ -162,11 +176,14 @@ new class extends Component {
                 </select>
             </div>
             <div>
-                <x-input-label for="country_publication" :value="'Pais'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
-                <x-text-input id="country_publication" wire:model.defer="country_publication" type="text" class="mt-2 block w-full" />
+                <x-input-label for="country_publication" :value="'Pais'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-text-input id="country_publication" wire:model.defer="country_publication" type="text"
+                    class="mt-2 block w-full" />
             </div>
             <div>
-                <x-input-label for="type_id" :value="'Tipo de publicacion'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="type_id" :value="'Tipo de publicacion'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <select id="type_id" wire:model.defer="type_id"
                     class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
                     <option value="">Sin asignar</option>
@@ -176,8 +193,10 @@ new class extends Component {
                 </select>
             </div>
             <div class="md:col-span-2">
-                <x-input-label for="url" :value="'URL'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
-                <x-text-input id="url" wire:model.defer="url" type="url" class="mt-2 block w-full" placeholder="https://" />
+                <x-input-label for="url" :value="'URL'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-text-input id="url" wire:model.defer="url" type="url" class="mt-2 block w-full"
+                    placeholder="https://" />
             </div>
         </div>
     </div>
@@ -186,10 +205,13 @@ new class extends Component {
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h3 class="text-lg font-semibold text-[#2b2323]">Publicaciones registradas</h3>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">{{ $this->publications->total() }} registros</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
+                    {{ $this->publications->total() }} registros
+                </p>
             </div>
             <div class="w-full sm:w-72">
-                <x-text-input wire:model.live="search" type="search" placeholder="Buscar por titulo, tipo o pais" class="w-full" />
+                <x-text-input wire:model.live="search" type="search" placeholder="Buscar por titulo, tipo o pais"
+                    class="w-full" />
             </div>
         </div>
 

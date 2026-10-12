@@ -18,7 +18,7 @@ class IndexPublicaciones extends Component
 
     // Filtros existentes
     public string $search = '';
-    
+
     // Nuevos filtros
     public ?string $filterYear = '';
     public ?string $filterType = '';
@@ -70,11 +70,11 @@ class IndexPublicaciones extends Component
 
     public function getHasActiveFiltersProperty(): bool
     {
-        return !empty($this->search) || 
-               !empty($this->filterYear) || 
-               !empty($this->filterType) || 
-               !empty($this->filterGroup) || 
-               !empty($this->filterAuthor);
+        return !empty($this->search) ||
+            !empty($this->filterYear) ||
+            !empty($this->filterType) ||
+            !empty($this->filterGroup) ||
+            !empty($this->filterAuthor);
     }
 
     public function abrirFormulario(): void
@@ -85,6 +85,7 @@ class IndexPublicaciones extends Component
 
     public function editar(int $publicationId): void
     {
+        $this->authorize('update', Publication::findOrFail($publicationId));
         $this->editingId = $publicationId;
         $this->showForm = true;
     }
@@ -97,7 +98,10 @@ class IndexPublicaciones extends Component
 
     public function eliminar(int $publicationId): void
     {
-        Publication::where('publication_id', $publicationId)->delete();
+        //Publication::where('publication_id', $publicationId)->delete();
+        $publication = Publication::findOrFail($publicationId);
+        $this->authorize('delete', $publication);
+        $publication->delete();
         $this->resetPage();
     }
 
@@ -141,9 +145,9 @@ class IndexPublicaciones extends Component
     public function exportPdf()
     {
         $publications = $this->getPublicationsQueryProperty()->get();
-        
+
         $pdf = Pdf::loadView('exports.publications-pdf', compact('publications'))
-                  ->setPaper('a4', 'landscape');
+            ->setPaper('a4', 'landscape');
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
