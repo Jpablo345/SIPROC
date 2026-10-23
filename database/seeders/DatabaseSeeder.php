@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(RoleSeeder::class);
         if ((bool) env('SEED_PER_MODEL', false)) {
             $this->call([
                 InstitutionSeeder::class,

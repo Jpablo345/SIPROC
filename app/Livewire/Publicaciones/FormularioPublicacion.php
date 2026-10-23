@@ -221,6 +221,12 @@ class FormularioPublicacion extends Component
 
     public function guardar(): void
     {
+        if ($this->publicationId) {
+            $this->authorize('update', Publication::findOrFail($this->publicationId));
+        } else {
+            $this->authorize('create', Publication::class);
+        }
+
         $data = $this->validate($this->rules(), $this->messages());
 
         app(SavePublicationAction::class)->execute(

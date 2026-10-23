@@ -250,15 +250,19 @@
                                 <td class="px-4 py-3 text-slate-600">{{ $isBook ? ($publication->book->means_of_dissemination ?? '—') : '—' }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex justify-end gap-2">
+                                        
                                         <button type="button" wire:click="editar({{ $publication->publication_id }})"
                                             class="rounded-full border border-[#9c1c1c]/30 px-3 py-1 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
                                             Editar
                                         </button>
+                                        
+                                        @can('delete', $publication)
                                         <button type="button" wire:click="eliminar({{ $publication->publication_id }})"
                                             onclick="confirm('¿Seguro que deseas eliminar esta publicación?') || event.stopImmediatePropagation()"
                                             class="rounded-full border border-[#d77a7a]/40 px-3 py-1 text-xs font-semibold text-[#9c1c1c] hover:bg-[#f9dede]">
                                             Eliminar
                                         </button>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

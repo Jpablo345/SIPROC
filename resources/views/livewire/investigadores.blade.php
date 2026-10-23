@@ -28,6 +28,7 @@ new class extends Component {
     public function edit(string $researcherId): void
     {
         $researcher = Researcher::findOrFail($researcherId);
+        $this->authorize('update', $researcher);
 
         $this->editingId = $researcher->researcher_id;
         $this->researcher_id = $researcher->researcher_id;
@@ -47,6 +48,11 @@ new class extends Component {
 
     public function save(): void
     {
+        if ($this->editingId) {
+            $this->authorize('update', Researcher::findOrFail($this->editingId));
+        } else {
+            $this->authorize('create', Researcher::class);
+        }
         if (trim($this->researcher_id) === '' || trim($this->name_1) === '' || trim($this->last_name_1) === '') {
             session()->flash('status', 'Completa el documento, nombre y primer apellido.');
             return;
@@ -76,7 +82,11 @@ new class extends Component {
 
     public function delete(string $researcherId): void
     {
-        Researcher::where('researcher_id', $researcherId)->delete();
+        //Researcher::where('researcher_id', $researcherId)->delete();
+        $researcher = Researcher::findOrFail($researcherId);
+        $this->authorize('delete', $researcher);
+        $researcher->delete();
+
         session()->flash('status', 'Investigador eliminado.');
         $this->resetPage();
     }
@@ -155,11 +165,14 @@ new class extends Component {
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div>
-                <x-input-label for="researcher_id" :value="'Documento'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
-                <x-text-input id="researcher_id" wire:model.defer="researcher_id" type="text" class="mt-2 block w-full" />
+                <x-input-label for="researcher_id" :value="'Documento'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-text-input id="researcher_id" wire:model.defer="researcher_id" type="text"
+                    class="mt-2 block w-full" />
             </div>
             <div>
-                <x-input-label for="cod_minciencias" :value="'Grupo Minciencias'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="cod_minciencias" :value="'Grupo Minciencias'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <select id="cod_minciencias" wire:model.defer="cod_minciencias"
                     class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
                     <option value="">Sin asignar</option>
@@ -169,27 +182,33 @@ new class extends Component {
                 </select>
             </div>
             <div>
-                <x-input-label for="name_1" :value="'Primer nombre'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="name_1" :value="'Primer nombre'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="name_1" wire:model.defer="name_1" type="text" class="mt-2 block w-full" />
             </div>
             <div>
-                <x-input-label for="name_2" :value="'Segundo nombre'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="name_2" :value="'Segundo nombre'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="name_2" wire:model.defer="name_2" type="text" class="mt-2 block w-full" />
             </div>
             <div>
-                <x-input-label for="last_name_1" :value="'Primer apellido'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="last_name_1" :value="'Primer apellido'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="last_name_1" wire:model.defer="last_name_1" type="text" class="mt-2 block w-full" />
             </div>
             <div>
-                <x-input-label for="last_name_2" :value="'Segundo apellido'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="last_name_2" :value="'Segundo apellido'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="last_name_2" wire:model.defer="last_name_2" type="text" class="mt-2 block w-full" />
             </div>
             <div>
-                <x-input-label for="email" :value="'Correo'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="email" :value="'Correo'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="email" wire:model.defer="email" type="email" class="mt-2 block w-full" />
             </div>
             <div>
-                <x-input-label for="phone" :value="'Telefono'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="phone" :value="'Telefono'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="phone" wire:model.defer="phone" type="text" class="mt-2 block w-full" />
             </div>
         </div>
@@ -199,10 +218,13 @@ new class extends Component {
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h3 class="text-lg font-semibold text-[#2b2323]">Investigadores registrados</h3>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">{{ $this->researchers->total() }} registros</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
+                    {{ $this->researchers->total() }} registros
+                </p>
             </div>
             <div class="w-full sm:w-72">
-                <x-text-input wire:model.live="search" type="search" placeholder="Buscar por nombre, correo o grupo" class="w-full" />
+                <x-text-input wire:model.live="search" type="search" placeholder="Buscar por nombre, correo o grupo"
+                    class="w-full" />
             </div>
         </div>
 
@@ -228,7 +250,8 @@ new class extends Component {
                         <tr wire:key="researcher-{{ $researcher->researcher_id }}" class="hover:bg-[#fff7f7]">
                             <td class="px-4 py-3 font-semibold text-[#2b2323]">{{ $researcher->researcher_id }}</td>
                             <td class="px-4 py-3 text-slate-600">
-                                {{ $researcher->name_1 }} {{ $researcher->name_2 }} {{ $researcher->last_name_1 }} {{ $researcher->last_name_2 }}
+                                {{ $researcher->name_1 }} {{ $researcher->name_2 }} {{ $researcher->last_name_1 }}
+                                {{ $researcher->last_name_2 }}
                             </td>
                             <td class="px-4 py-3 text-slate-600">
                                 <div>{{ $researcher->email ?? '—' }}</div>
