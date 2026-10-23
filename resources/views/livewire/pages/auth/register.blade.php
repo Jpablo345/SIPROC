@@ -12,8 +12,8 @@ use Livewire\Attributes\Locked;
 use Livewire\Volt\Component;
 use Spatie\OneTimePasswords\Enums\ConsumeOneTimePasswordResult;
 
-new #[Layout('layouts.guest')] class extends Component
-{
+new #[Layout('layouts.guest')]
+    class extends Component {
     public string $user_type = 'student';
     public string $name = '';
     public string $email = '';
@@ -34,7 +34,7 @@ new #[Layout('layouts.guest')] class extends Component
      */
     public function setType(string $type): void
     {
-        if (! in_array($type, ['student', 'teacher'], true)) {
+        if (!in_array($type, ['student', 'teacher'], true)) {
             return;
         }
 
@@ -56,7 +56,7 @@ new #[Layout('layouts.guest')] class extends Component
             'user_type' => ['required', 'in:student,teacher'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'ends_with:@ufpso.edu.co', Rule::unique('users', 'email')->whereNotNull('email_verified_at')],
-            'code' => ['required', 'digits:'.$length, Rule::unique('users', 'code')->whereNotNull('email_verified_at')],
+            'code' => ['required', 'digits:' . $length, Rule::unique('users', 'code')->whereNotNull('email_verified_at')],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ], [
             'email.ends_with' => 'Debes usar tu correo institucional (@ufpso.edu.co).',
@@ -70,7 +70,8 @@ new #[Layout('layouts.guest')] class extends Component
 
         // Un registro sin verificar no bloquea el correo ni el código: se reemplaza.
         User::whereNull('email_verified_at')
-            ->where(fn ($q) => $q->where('email', $validated['email'])->orWhere('code', $validated['code']))
+            ->whereNotNull('user_type')
+            ->where(fn($q) => $q->where('email', $validated['email'])->orWhere('code', $validated['code']))
             ->delete();
 
         $validated['password'] = Hash::make($validated['password']);
@@ -103,7 +104,7 @@ new #[Layout('layouts.guest')] class extends Component
         $length = (int) config('one-time-passwords.password_length', 6);
 
         $this->validate([
-            'otp' => ['required', 'digits:'.$length],
+            'otp' => ['required', 'digits:' . $length],
         ], [
             'otp.required' => 'Ingresa el código que te enviamos.',
             'otp.digits' => "El código tiene $length dígitos.",
@@ -111,7 +112,7 @@ new #[Layout('layouts.guest')] class extends Component
 
         $user = $this->pendingUser();
 
-        if (! $user) {
+        if (!$user) {
             $this->backToForm();
 
             return;
@@ -119,13 +120,15 @@ new #[Layout('layouts.guest')] class extends Component
 
         $result = $user->consumeOneTimePassword($this->otp);
 
-        if (! $result->isOk()) {
+        if (!$result->isOk()) {
             $this->addError('otp', $this->otpErrorMessage($result));
 
             return;
         }
 
         $user->forceFill(['email_verified_at' => now()])->save();
+
+        $user->assignRole($user->user_type === 'student' ? 'Estudiante' : 'Docente');
 
         event(new Registered($user));
 
@@ -142,7 +145,7 @@ new #[Layout('layouts.guest')] class extends Component
     {
         $user = $this->pendingUser();
 
-        if (! $user) {
+        if (!$user) {
             $this->backToForm();
 
             return;
@@ -151,7 +154,7 @@ new #[Layout('layouts.guest')] class extends Component
         $key = $this->resendKey($user->id);
 
         if (RateLimiter::tooManyAttempts($key, 1)) {
-            $this->addError('otp', 'Espera '.RateLimiter::availableIn($key).' segundos para pedir otro código.');
+            $this->addError('otp', 'Espera ' . RateLimiter::availableIn($key) . ' segundos para pedir otro código.');
 
             return;
         }
@@ -188,12 +191,12 @@ new #[Layout('layouts.guest')] class extends Component
     {
         $user = $this->pendingUserId ? User::find($this->pendingUserId) : null;
 
-        return ($user && ! $user->email_verified_at) ? $user : null;
+        return ($user && !$user->email_verified_at) ? $user : null;
     }
 
     protected function resendKey(int $userId): string
     {
-        return 'register-otp-resend:'.$userId;
+        return 'register-otp-resend:' . $userId;
     }
 
     protected function otpErrorMessage(ConsumeOneTimePasswordResult $result): string
@@ -221,104 +224,123 @@ new #[Layout('layouts.guest')] class extends Component
 
     <div class="bg-white p-8 rounded-2xl shadow-2xl border border-red-200">
         @if ($step === 'form')
-        <form wire:submit="register" class="space-y-5">
+            <form wire:submit="register" class="space-y-5">
 
-            <div class="grid grid-cols-2 gap-1 p-1 bg-red-50 border border-red-200 rounded-xl">
-                <button type="button" wire:click="setType('student')"
-                    class="py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all {{ $user_type === 'student' ? 'bg-red-600 text-white shadow' : 'text-red-700 hover:bg-red-100' }}">
-                    Estudiante
-                </button>
-                <button type="button" wire:click="setType('teacher')"
-                    class="py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all {{ $user_type === 'teacher' ? 'bg-red-600 text-white shadow' : 'text-red-700 hover:bg-red-100' }}">
-                    Docente / Investigador
-                </button>
-            </div>
-
-            <div>
-                <x-input-label for="name" :value="__('Nombre Completo')" class="font-bold text-zinc-700" />
-                <x-text-input wire:model="name" id="name" class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500" type="text" name="name" required autofocus />
-                <x-input-error :messages="$errors->get('name')" class="mt-1 text-red-600" />
-            </div>
-
-            <div>
-                <x-input-label for="email" :value="__('Correo Electrónico')" class="font-bold text-zinc-700" />
-                <x-text-input wire:model="email" id="email" class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500" type="email" name="email" required />
-                <x-input-error :messages="$errors->get('email')" class="mt-1 text-red-600" />
-            </div>
-
-            <div>
-                <x-input-label for="code" :value="$user_type === 'student' ? __('Código de Estudiante') : __('Código de Docente')" class="font-bold text-zinc-700" />
-                <x-text-input wire:model="code" id="code" class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500" type="text" name="code" inputmode="numeric" pattern="[0-9]*" :maxlength="$user_type === 'student' ? 7 : null" x-on:input="$el.value = $el.value.replace(/\D/g, '')" required />
-                @if ($user_type === 'student')
-                    <p class="mt-1 text-xs text-zinc-500">Mínimo 7 dígitos</p>
-                @endif
-                <x-input-error :messages="$errors->get('code')" class="mt-1 text-red-600" />
-            </div>
-
-            <div>
-                <x-input-label for="password" :value="__('Contraseña')" class="font-bold text-zinc-700" />
-                <x-text-input wire:model="password" id="password" class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500" type="password" name="password" required />
-                <x-input-error :messages="$errors->get('password')" class="mt-1 text-red-600" />
-            </div>
-
-            <div>
-                <x-input-label for="password_confirmation" :value="__('Confirmar Contraseña')" class="font-bold text-zinc-700" />
-                <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500" type="password" name="password_confirmation" required />
-                <x-input-error :messages="$errors->get('password_confirmation')" class="mt-1 text-red-600" />
-            </div>
-
-            <div class="flex flex-col gap-3 pt-4">
-                <button type="submit" wire:loading.attr="disabled" wire:target="register" class="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-black py-3 rounded-lg shadow-lg shadow-red-900/50 transition-all uppercase text-sm tracking-widest">
-                    <span wire:loading.remove wire:target="register">{{ __('Crear Cuenta') }}</span>
-                    <span wire:loading wire:target="register">Enviando código...</span>
-                </button>
-
-                <div class="text-center pt-2">
-                    <a class="text-xs font-bold text-red-700 hover:text-red-600 transition-colors uppercase tracking-widest" href="{{ route('login') }}" wire:navigate>
-                        {{ __('¿Ya tienes cuenta? Inicia sesión') }}
-                    </a>
+                <div class="grid grid-cols-2 gap-1 p-1 bg-red-50 border border-red-200 rounded-xl">
+                    <button type="button" wire:click="setType('student')"
+                        class="py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all {{ $user_type === 'student' ? 'bg-red-600 text-white shadow' : 'text-red-700 hover:bg-red-100' }}">
+                        Estudiante
+                    </button>
+                    <button type="button" wire:click="setType('teacher')"
+                        class="py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all {{ $user_type === 'teacher' ? 'bg-red-600 text-white shadow' : 'text-red-700 hover:bg-red-100' }}">
+                        Docente / Investigador
+                    </button>
                 </div>
-            </div>
-        </form>
+
+                <div>
+                    <x-input-label for="name" :value="__('Nombre Completo')" class="font-bold text-zinc-700" />
+                    <x-text-input wire:model="name" id="name"
+                        class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500"
+                        type="text" name="name" required autofocus />
+                    <x-input-error :messages="$errors->get('name')" class="mt-1 text-red-600" />
+                </div>
+
+                <div>
+                    <x-input-label for="email" :value="__('Correo Electrónico')" class="font-bold text-zinc-700" />
+                    <x-text-input wire:model="email" id="email"
+                        class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500"
+                        type="email" name="email" required />
+                    <x-input-error :messages="$errors->get('email')" class="mt-1 text-red-600" />
+                </div>
+
+                <div>
+                    <x-input-label for="code" :value="$user_type === 'student' ? __('Código de Estudiante') : __('Código de Docente')" class="font-bold text-zinc-700" />
+                    <x-text-input wire:model="code" id="code"
+                        class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500"
+                        type="text" name="code" inputmode="numeric" pattern="[0-9]*" :maxlength="$user_type === 'student' ? 7 : null" x-on:input="$el.value = $el.value.replace(/\D/g, '')" required />
+                    @if ($user_type === 'student')
+                        <p class="mt-1 text-xs text-zinc-500">Mínimo 7 dígitos</p>
+                    @endif
+                    <x-input-error :messages="$errors->get('code')" class="mt-1 text-red-600" />
+                </div>
+
+                <div>
+                    <x-input-label for="password" :value="__('Contraseña')" class="font-bold text-zinc-700" />
+                    <x-text-input wire:model="password" id="password"
+                        class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500"
+                        type="password" name="password" required />
+                    <x-input-error :messages="$errors->get('password')" class="mt-1 text-red-600" />
+                </div>
+
+                <div>
+                    <x-input-label for="password_confirmation" :value="__('Confirmar Contraseña')"
+                        class="font-bold text-zinc-700" />
+                    <x-text-input wire:model="password_confirmation" id="password_confirmation"
+                        class="block mt-1 w-full border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500"
+                        type="password" name="password_confirmation" required />
+                    <x-input-error :messages="$errors->get('password_confirmation')" class="mt-1 text-red-600" />
+                </div>
+
+                <div class="flex flex-col gap-3 pt-4">
+                    <button type="submit" wire:loading.attr="disabled" wire:target="register"
+                        class="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-black py-3 rounded-lg shadow-lg shadow-red-900/50 transition-all uppercase text-sm tracking-widest">
+                        <span wire:loading.remove wire:target="register">{{ __('Crear Cuenta') }}</span>
+                        <span wire:loading wire:target="register">Enviando código...</span>
+                    </button>
+
+                    <div class="text-center pt-2">
+                        <a class="text-xs font-bold text-red-700 hover:text-red-600 transition-colors uppercase tracking-widest"
+                            href="{{ route('login') }}" wire:navigate>
+                            {{ __('¿Ya tienes cuenta? Inicia sesión') }}
+                        </a>
+                    </div>
+                </div>
+            </form>
         @else
-        <form wire:submit="verifyOtp" class="space-y-5">
-            <div class="text-center">
-                <h3 class="text-lg font-black text-zinc-800 uppercase tracking-tight">Verifica tu correo</h3>
-                <p class="mt-2 text-sm text-zinc-600">
-                    Enviamos un código de verificación (OTP) a
-                    <span class="font-bold text-zinc-800">{{ $email }}</span>.
-                    Ingrésalo para confirmar que el correo te pertenece.
-                </p>
-            </div>
-
-            @if ($notice)
-                <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p class="text-sm text-green-700 text-center">{{ $notice }}</p>
+            <form wire:submit="verifyOtp" class="space-y-5">
+                <div class="text-center">
+                    <h3 class="text-lg font-black text-zinc-800 uppercase tracking-tight">Verifica tu correo</h3>
+                    <p class="mt-2 text-sm text-zinc-600">
+                        Enviamos un código de verificación (OTP) a
+                        <span class="font-bold text-zinc-800">{{ $email }}</span>.
+                        Ingrésalo para confirmar que el correo te pertenece.
+                    </p>
                 </div>
-            @endif
 
-            <div>
-                <x-input-label for="otp" :value="__('Código de verificación')" class="font-bold text-zinc-700" />
-                <x-text-input wire:model="otp" id="otp" class="block mt-1 w-full text-center text-2xl tracking-[0.5em] border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500" type="text" name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" x-on:input="$el.value = $el.value.replace(/\D/g, '')" required autofocus />
-                <x-input-error :messages="$errors->get('otp')" class="mt-1 text-red-600" />
-            </div>
+                @if ($notice)
+                    <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p class="text-sm text-green-700 text-center">{{ $notice }}</p>
+                    </div>
+                @endif
 
-            <div class="flex flex-col gap-3 pt-2">
-                <button type="submit" wire:loading.attr="disabled" wire:target="verifyOtp" class="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-black py-3 rounded-lg shadow-lg shadow-red-900/50 transition-all uppercase text-sm tracking-widest">
-                    <span wire:loading.remove wire:target="verifyOtp">Verificar y crear cuenta</span>
-                    <span wire:loading wire:target="verifyOtp">Verificando...</span>
-                </button>
-
-                <div class="flex items-center justify-between pt-2">
-                    <button type="button" wire:click="resend" class="text-xs font-bold text-red-700 hover:text-red-600 transition-colors uppercase tracking-widest">
-                        Reenviar código
-                    </button>
-                    <button type="button" wire:click="backToForm" class="text-xs font-bold text-zinc-500 hover:text-zinc-700 transition-colors uppercase tracking-widest">
-                        Cambiar correo
-                    </button>
+                <div>
+                    <x-input-label for="otp" :value="__('Código de verificación')" class="font-bold text-zinc-700" />
+                    <x-text-input wire:model="otp" id="otp"
+                        class="block mt-1 w-full text-center text-2xl tracking-[0.5em] border-red-200 bg-white text-zinc-900 focus:border-red-500 focus:ring-red-500"
+                        type="text" name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+                        x-on:input="$el.value = $el.value.replace(/\D/g, '')" required autofocus />
+                    <x-input-error :messages="$errors->get('otp')" class="mt-1 text-red-600" />
                 </div>
-            </div>
-        </form>
+
+                <div class="flex flex-col gap-3 pt-2">
+                    <button type="submit" wire:loading.attr="disabled" wire:target="verifyOtp"
+                        class="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-black py-3 rounded-lg shadow-lg shadow-red-900/50 transition-all uppercase text-sm tracking-widest">
+                        <span wire:loading.remove wire:target="verifyOtp">Verificar y crear cuenta</span>
+                        <span wire:loading wire:target="verifyOtp">Verificando...</span>
+                    </button>
+
+                    <div class="flex items-center justify-between pt-2">
+                        <button type="button" wire:click="resend"
+                            class="text-xs font-bold text-red-700 hover:text-red-600 transition-colors uppercase tracking-widest">
+                            Reenviar código
+                        </button>
+                        <button type="button" wire:click="backToForm"
+                            class="text-xs font-bold text-zinc-500 hover:text-zinc-700 transition-colors uppercase tracking-widest">
+                            Cambiar correo
+                        </button>
+                    </div>
+                </div>
+            </form>
         @endif
     </div>
 

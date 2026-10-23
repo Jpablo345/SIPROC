@@ -15,6 +15,10 @@ use App\Models\{
     PublicationType,
     BookType
 };
+use Illuminate\Auth\Access\AuthorizationException;
+use Livewire\Component;
+
+use function Livewire\on;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -43,5 +47,16 @@ class AppServiceProvider extends ServiceProvider
         ] as $model) {
             Gate::policy($model, OwnedRecordPolicy::class);
         }
+
+        on('exception', function ($target, $e, $stopPropagation) {
+            if ($e instanceof AuthorizationException && $target instanceof Component) {
+                $target->dispatch(
+                    'permission-denied',
+                    message: 'No tienes los permisos suficientes para realizar esta acción.'
+                );
+
+                $stopPropagation();
+            }
+        });
     }
 }
