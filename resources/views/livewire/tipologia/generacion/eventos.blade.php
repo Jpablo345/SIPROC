@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Event;
+use App\Models\ResearcherEvent;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
@@ -22,6 +23,9 @@ new class extends Component {
     public ?int $host_institution_id = null;
     public ?int $origin_institution_id = null;
 
+    // Conferencistas (sincronizado con el selector vía wire:model)
+    public array $selectedSpeakers = [];
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -31,19 +35,17 @@ new class extends Component {
     public function setHost(int $id): void
     {
         $this->host_institution_id = $id;
-        logger("Host institución seleccionada: " . $id);
     }
 
     #[On('institucion-seleccionada-origin')]
     public function setOrigin(int $id): void
     {
         $this->origin_institution_id = $id;
-        logger("Origin institución seleccionada: " . $id);
     }
 
     public function edit(int $eventId): void
     {
-        $event = Event::with(['hostInstitution', 'originInstitution', 'researcherEvents'])->findOrFail($eventId);
+        $event = Event::with(['hostInstitution', 'originInstitution', 'researcherEvents.researcher.researchGroup'])->findOrFail($eventId);
         $this->authorize('update', $event);
 
         $this->editingId = $event->event_id;
@@ -60,7 +62,19 @@ new class extends Component {
         $this->participation_type = $firstResearcher?->participation_type ?? 'Ponente';
 
         // Cargar conferencistas
-        $this->dispatch('cargar-conferencistas', eventId: $eventId);
+        $this->selectedSpeakers = $event->researcherEvents
+            ->map(fn($re) => [
+                'researcher_id' => $re->researcher->researcher_id,
+                'name' => trim(implode(' ', array_filter([
+                    $re->researcher->name_1,
+                    $re->researcher->name_2,
+                    $re->researcher->last_name_1,
+                    $re->researcher->last_name_2,
+                ]))),
+                'group' => $re->researcher->researchGroup?->group_name,
+            ])
+            ->values()
+            ->toArray();
 
         // Cargar instituciones
         if ($event->host_institution_id) {
@@ -97,8 +111,10 @@ new class extends Component {
             'event_year' => ['nullable', 'regex:/^\d{4}$/'],
             'event_month' => ['nullable', 'integer', 'min:1', 'max:12'],
             'event_scope' => ['nullable', 'in:Nacional,Internacional'],
-            'event_url' => ['nullable', 'url', 'max:300'],
+            'event_url' => ['nullable', 'url:http,https', 'max:300'],
             'participation_type' => ['required', 'in:Ponente,Asistente,Organizador,Conferencista Magistral,Moderador,Panelista'],
+            'selectedSpeakers' => ['array'],
+            'selectedSpeakers.*.researcher_id' => ['required', 'integer', 'distinct', 'exists:researcher,researcher_id'],
         ]);
 
         $data = [
@@ -120,12 +136,16 @@ new class extends Component {
                 $eventId = $event->event_id;
             }
 
-            // Sincronizar conferencistas
-            $this->dispatch(
-                'sincronizar-conferencistas',
-                eventId: $eventId,
-                participationType: $this->participation_type
-            );
+            // Sincronizar conferencistas en la misma transacción
+            ResearcherEvent::where('event_id', $eventId)->delete();
+            foreach ($this->selectedSpeakers as $speaker) {
+                ResearcherEvent::create([
+                    'event_id' => $eventId,
+                    'researcher_id' => $speaker['researcher_id'],
+                    'presentation_title' => null,
+                    'participation_type' => $this->participation_type,
+                ]);
+            }
         });
 
         session()->flash('status', $this->editingId ? 'Evento actualizado.' : 'Evento creado.');
@@ -178,7 +198,7 @@ new class extends Component {
         $this->participation_type = 'Ponente';
         $this->host_institution_id = null;
         $this->origin_institution_id = null;
-        $this->dispatch('resetear-conferencistas');
+        $this->selectedSpeakers = [];
         $this->dispatch('resetear-institucion');
         $this->resetValidation();
     }
@@ -288,7 +308,7 @@ new class extends Component {
     </div>
 
     {{-- Conferencistas --}}
-    <livewire:eventos.conferencista-selector />
+    <livewire:eventos.conferencista-selector wire:model="selectedSpeakers" />
 
     {{-- Tabla --}}
     <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">

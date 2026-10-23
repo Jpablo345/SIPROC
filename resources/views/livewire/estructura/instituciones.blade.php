@@ -29,7 +29,7 @@ new class extends Component {
             'country' => ['nullable', 'string', 'max:50'],
             'city' => ['nullable', 'string', 'max:50'],
             'institution_type' => ['nullable', 'string', 'max:50'],
-            'website' => ['nullable', 'string', 'max:255', 'url', 'starts_with:http'],
+            'website' => ['nullable', 'string', 'max:255', 'url:http,https'],
         ];
     }
 

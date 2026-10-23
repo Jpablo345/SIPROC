@@ -5,10 +5,9 @@ namespace App\Livewire\Eventos;
 use App\Models\Institution;
 use App\Models\ResearchGroup;
 use App\Models\Researcher;
-use App\Models\ResearcherEvent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Livewire\Attributes\On;
+use Livewire\Attributes\Modelable;
 use Livewire\Component;
 
 
@@ -16,6 +15,9 @@ class ConferencistaSelector extends Component
 {
     public string $speakerSearch = '';
     public array $speakerResults = [];
+
+    // #[Modelable] permite que el padre use wire:model="selectedSpeakers"
+    #[Modelable]
     public array $selectedSpeakers = [];
 
     // ─── Modal para crear investigador ─────────────────────────────────────────
@@ -114,6 +116,14 @@ class ConferencistaSelector extends Component
 
     public function crearYSeleccionar(): void
     {
+        $this->authorize('create', Researcher::class);
+        if ($this->modal_create_group) {
+            $this->authorize('create', ResearchGroup::class);
+        }
+        if ($this->modal_create_institution) {
+            $this->authorize('create', Institution::class);
+        }
+
         $data = $this->validate($this->modalRules(), $this->modalMessages());
 
         $name1 = trim($data['modal_name_1']);
@@ -166,52 +176,6 @@ class ConferencistaSelector extends Component
         $this->resetResearcherModalFields();
     }
 
-    // ─── Eventos del padre ────────────────────────────────────────────────────
-
-    #[On('cargar-conferencistas')]
-    public function cargar(int $eventId): void
-    {
-        $this->selectedSpeakers = ResearcherEvent::with('researcher.researchGroup')
-            ->where('event_id', $eventId)
-            ->get()
-            ->map(fn($re) => [
-                'researcher_id' => $re->researcher->researcher_id,
-                'name' => $this->formatName($re->researcher),
-                'group' => $re->researcher->researchGroup?->group_name,
-            ])
-            ->toArray();
-    }
-
-    #[On('sincronizar-conferencistas')]
-    public function sincronizar(int $eventId, string $participationType = 'Ponente'): void
-    {
-        // Log para depuración
-        logger("Sincronizando conferencistas para evento: " . $eventId);
-        logger("Tipo de participación: " . $participationType);
-        logger("Conferencistas seleccionados: " . json_encode($this->selectedSpeakers));
-
-        ResearcherEvent::where('event_id', $eventId)->delete();
-
-        foreach ($this->selectedSpeakers as $speaker) {
-            ResearcherEvent::create([
-                'event_id' => $eventId,
-                'researcher_id' => $speaker['researcher_id'],
-                'presentation_title' => null,
-                'participation_type' => $participationType,
-            ]);
-        }
-
-        logger("Conferencistas guardados: " . ResearcherEvent::where('event_id', $eventId)->count());
-    }
-
-    #[On('resetear-conferencistas')]
-    public function resetear(): void
-    {
-        $this->selectedSpeakers = [];
-        $this->speakerSearch = '';
-        $this->speakerResults = [];
-    }
-
     // ─── Reglas y mensajes del modal ─────────────────────────────────────────
 
     private function modalRules(): array
@@ -253,7 +217,7 @@ class ConferencistaSelector extends Component
             'modal_institution_type' => ['nullable', 'string', 'max:50'],
             'modal_institution_country' => ['nullable', 'string', 'max:50'],
             'modal_institution_city' => ['nullable', 'string', 'max:50'],
-            'modal_institution_website' => ['nullable', 'string', 'max:255'],
+            'modal_institution_website' => ['nullable', 'string', 'max:255', 'url:http,https'],
         ];
     }
 
