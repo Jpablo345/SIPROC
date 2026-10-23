@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MailController;
 use App\Livewire\Publicaciones\IndexPublicaciones;
 use App\Livewire\Publicaciones\TiposPublicacion;
 use App\Livewire\Publicaciones\Journals;
@@ -10,7 +9,7 @@ use App\Http\Controllers\GoogleAuthController;
 
 Route::redirect('/', '/login');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'can:consultar'])->group(function () {
     Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('dashboard');
     Route::view('investigadores', 'investigadores')->name('investigadores');
     
@@ -43,8 +42,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('tipos-libro', TiposLibro::class)->name('tipos-libro');
     });
 });
-
-Route::get('/send-email', [MailController::class, 'sendEmail']);
 
 Route::view('profile', 'profile')
     ->middleware(['auth'])

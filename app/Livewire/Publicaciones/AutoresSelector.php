@@ -111,6 +111,14 @@ class AutoresSelector extends Component
 
     public function crearYSeleccionar(): void
     {
+        $this->authorize('create', Researcher::class);
+        if ($this->modal_create_group) {
+            $this->authorize('create', ResearchGroup::class);
+        }
+        if ($this->modal_create_institution) {
+            $this->authorize('create', Institution::class);
+        }
+
         $data = $this->validate($this->modalRules(), $this->modalMessages());
 
         $name1 = trim($data['modal_name_1']);
@@ -219,7 +227,7 @@ class AutoresSelector extends Component
             'modal_institution_type' => ['nullable', 'string', 'max:50'],
             'modal_institution_country' => ['nullable', 'string', 'max:50'],
             'modal_institution_city' => ['nullable', 'string', 'max:50'],
-            'modal_institution_website' => ['nullable', 'string', 'max:255'],
+            'modal_institution_website' => ['nullable', 'string', 'max:255', 'url:http,https'],
         ];
     }
 

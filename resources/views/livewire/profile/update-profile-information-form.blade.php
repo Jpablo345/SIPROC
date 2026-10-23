@@ -1,9 +1,7 @@
 <?php
 
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 
 new class extends Component
@@ -27,17 +25,12 @@ new class extends Component
     {
         $user = Auth::user();
 
+        // El correo institucional no se puede cambiar: es la identidad verificada por OTP y la del login con Google.
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
         ]);
 
         $user->fill($validated);
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
         $user->save();
 
         $this->dispatch('profile-updated', name: $user->name);
@@ -69,7 +62,7 @@ new class extends Component
         </h2>
 
         <p class="mt-1 text-sm text-gray-500">
-            {{ __("Actualiza la información de tu cuenta y dirección de correo electrónico.") }}
+            {{ __("Actualiza la información de tu cuenta. El correo institucional no se puede cambiar.") }}
         </p>
     </header>
 
@@ -95,14 +88,15 @@ new class extends Component
             <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">
                 {{ __('Correo Electrónico') }}
             </label>
-            <input 
-                wire:model="email" 
-                id="email" 
-                name="email" 
-                type="email" 
-                class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-800 shadow-sm focus:border-red-600 focus:ring focus:ring-red-200 focus:ring-opacity-50 p-2.5" 
-                required 
-                autocomplete="username" 
+            <input
+                value="{{ $email }}"
+                id="email"
+                name="email"
+                type="email"
+                class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 text-gray-500 shadow-sm p-2.5 cursor-not-allowed"
+                readonly
+                disabled
+                autocomplete="username"
             />
             <x-input-error class="mt-2 text-red-600 text-sm" :messages="$errors->get('email')" />
 
