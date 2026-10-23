@@ -101,6 +101,7 @@ new class extends Component {
     public function edit(int $publicationId): void
     {
         $article = Article::with(['publication', 'journal'])->findOrFail($publicationId);
+        $this->authorize('update', $article->publication);
 
         $this->editingId = $article->publication_id;
         $this->title = $article->publication?->title ?? '';
@@ -136,8 +137,11 @@ new class extends Component {
 
     public function save(): void
     {
-        
-
+        if ($this->editingId) {
+            $this->authorize('update', Publication::findOrFail($this->editingId));
+        } else {
+            $this->authorize('create', Publication::class);
+        }
         if (trim($this->title) === '' || !$this->journal_issn) {
             session()->flash('status', 'Completa el titulo y la revista.');
             return;
@@ -186,7 +190,11 @@ new class extends Component {
 
     public function delete(int $publicationId): void
     {
-        Publication::where('publication_id', $publicationId)->delete();
+        //Publication::where('publication_id', $publicationId)->delete();
+        $publication = Publication::findOrFail($publicationId);
+        $this->authorize('delete', $publication);
+        $publication->delete();
+
         session()->flash('status', 'Articulo eliminado.');
         $this->resetPage();
     }

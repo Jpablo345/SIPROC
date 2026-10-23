@@ -12,14 +12,14 @@ new class extends Component {
     public string $search = '';
     public ?int $editingId = null;
 
-    public ?string $event_year        = null;
-    public ?string $event_month       = null;
-    public string  $event_name        = '';
-    public ?string $event_scope       = null;
-    public ?string $event_url         = null;
-    public string  $participation_type = 'Ponente';
+    public ?string $event_year = null;
+    public ?string $event_month = null;
+    public string $event_name = '';
+    public ?string $event_scope = null;
+    public ?string $event_url = null;
+    public string $participation_type = 'Ponente';
 
-    public ?int $host_institution_id   = null;
+    public ?int $host_institution_id = null;
     public ?int $origin_institution_id = null;
 
     public function updatedSearch(): void
@@ -44,16 +44,17 @@ new class extends Component {
     public function edit(int $eventId): void
     {
         $event = Event::with(['hostInstitution', 'originInstitution', 'researcherEvents'])->findOrFail($eventId);
+        $this->authorize('update', $event);
 
-        $this->editingId            = $event->event_id;
-        $this->event_year           = $event->event_year;
-        $this->event_month          = $event->event_month;
-        $this->event_name           = $event->event_name;
-        $this->event_scope          = $event->event_scope;
-        $this->event_url            = $event->event_url;
-        $this->host_institution_id  = $event->host_institution_id;
-        $this->origin_institution_id= $event->origin_institution_id;
-        
+        $this->editingId = $event->event_id;
+        $this->event_year = $event->event_year;
+        $this->event_month = $event->event_month;
+        $this->event_name = $event->event_name;
+        $this->event_scope = $event->event_scope;
+        $this->event_url = $event->event_url;
+        $this->host_institution_id = $event->host_institution_id;
+        $this->origin_institution_id = $event->origin_institution_id;
+
         // Tomar el tipo de participación del primer conferencista
         $firstResearcher = $event->researcherEvents->first();
         $this->participation_type = $firstResearcher?->participation_type ?? 'Ponente';
@@ -63,14 +64,16 @@ new class extends Component {
 
         // Cargar instituciones
         if ($event->host_institution_id) {
-            $this->dispatch('cargar-institucion-host',
+            $this->dispatch(
+                'cargar-institucion-host',
                 id: $event->hostInstitution->institution_id,
                 name: $event->hostInstitution->institution_name
             );
         }
 
         if ($event->origin_institution_id) {
-            $this->dispatch('cargar-institucion-origin',
+            $this->dispatch(
+                'cargar-institucion-origin',
                 id: $event->originInstitution->institution_id,
                 name: $event->originInstitution->institution_name
             );
@@ -84,22 +87,27 @@ new class extends Component {
 
     public function save(): void
     {
+        if ($this->editingId) {
+            $this->authorize('update', Event::findOrFail($this->editingId));
+        } else {
+            $this->authorize('create', Event::class);
+        }
         $this->validate([
-            'event_name'  => ['required', 'string', 'max:255'],
-            'event_year'  => ['nullable', 'regex:/^\d{4}$/'],
+            'event_name' => ['required', 'string', 'max:255'],
+            'event_year' => ['nullable', 'regex:/^\d{4}$/'],
             'event_month' => ['nullable', 'integer', 'min:1', 'max:12'],
             'event_scope' => ['nullable', 'in:Nacional,Internacional'],
-            'event_url'   => ['nullable', 'url', 'max:300'],
+            'event_url' => ['nullable', 'url', 'max:300'],
             'participation_type' => ['required', 'in:Ponente,Asistente,Organizador,Conferencista Magistral,Moderador,Panelista'],
         ]);
 
         $data = [
-            'event_name'            => trim($this->event_name),
-            'event_year'            => $this->event_year,
-            'event_month'           => $this->event_month,
-            'event_scope'           => $this->event_scope,
-            'event_url'             => $this->event_url ? trim($this->event_url) : null,
-            'host_institution_id'   => $this->host_institution_id,
+            'event_name' => trim($this->event_name),
+            'event_year' => $this->event_year,
+            'event_month' => $this->event_month,
+            'event_scope' => $this->event_scope,
+            'event_url' => $this->event_url ? trim($this->event_url) : null,
+            'host_institution_id' => $this->host_institution_id,
             'origin_institution_id' => $this->origin_institution_id,
         ];
 
@@ -113,8 +121,9 @@ new class extends Component {
             }
 
             // Sincronizar conferencistas
-            $this->dispatch('sincronizar-conferencistas', 
-                eventId: $eventId, 
+            $this->dispatch(
+                'sincronizar-conferencistas',
+                eventId: $eventId,
                 participationType: $this->participation_type
             );
         });
@@ -125,7 +134,11 @@ new class extends Component {
 
     public function delete(int $eventId): void
     {
-        Event::where('event_id', $eventId)->delete();
+        //Event::where('event_id', $eventId)->delete();
+        $event = Event::findOrFail($eventId);
+        $this->authorize('delete', $event);
+        $event->delete();
+
         session()->flash('status', 'Evento eliminado.');
         $this->resetPage();
     }
@@ -143,9 +156,11 @@ new class extends Component {
                     ->orWhere('event_scope', 'ilike', $like)
                     ->orWhereHas('hostInstitution', fn($q) => $q->where('institution_name', 'ilike', $like))
                     ->orWhereHas('originInstitution', fn($q) => $q->where('institution_name', 'ilike', $like))
-                    ->orWhereHas('researchers', fn($q) => $q
-                        ->where('name_1', 'ilike', $like)
-                        ->orWhere('last_name_1', 'ilike', $like)
+                    ->orWhereHas(
+                        'researchers',
+                        fn($q) => $q
+                            ->where('name_1', 'ilike', $like)
+                            ->orWhere('last_name_1', 'ilike', $like)
                     );
             })
             ->orderByDesc('event_id')
@@ -154,14 +169,14 @@ new class extends Component {
 
     private function resetForm(): void
     {
-        $this->editingId             = null;
-        $this->event_year            = null;
-        $this->event_month           = null;
-        $this->event_name            = '';
-        $this->event_scope           = null;
-        $this->event_url             = null;
-        $this->participation_type    = 'Ponente';
-        $this->host_institution_id   = null;
+        $this->editingId = null;
+        $this->event_year = null;
+        $this->event_month = null;
+        $this->event_name = '';
+        $this->event_scope = null;
+        $this->event_url = null;
+        $this->participation_type = 'Ponente';
+        $this->host_institution_id = null;
         $this->origin_institution_id = null;
         $this->dispatch('resetear-conferencistas');
         $this->dispatch('resetear-institucion');
@@ -204,19 +219,16 @@ new class extends Component {
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div>
-                <x-input-label :value="'Año'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
-                <x-text-input wire:model.defer="event_year" type="text"
-                    class="mt-2 block w-full" placeholder="2024" />
+                <x-input-label :value="'Año'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-text-input wire:model.defer="event_year" type="text" class="mt-2 block w-full" placeholder="2024" />
                 <x-input-error :messages="$errors->get('event_year')" class="mt-2" />
             </div>
             <div>
-                <x-input-label :value="'Mes'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label :value="'Mes'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <select wire:model.defer="event_month"
                     class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
                     <option value="">Sin definir</option>
-                    @foreach(['1'=>'Enero','2'=>'Febrero','3'=>'Marzo','4'=>'Abril','5'=>'Mayo','6'=>'Junio','7'=>'Julio','8'=>'Agosto','9'=>'Septiembre','10'=>'Octubre','11'=>'Noviembre','12'=>'Diciembre'] as $num => $nombre)
+                    @foreach(['1' => 'Enero', '2' => 'Febrero', '3' => 'Marzo', '4' => 'Abril', '5' => 'Mayo', '6' => 'Junio', '7' => 'Julio', '8' => 'Agosto', '9' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'] as $num => $nombre)
                         <option value="{{ $num }}">{{ $nombre }}</option>
                     @endforeach
                 </select>
@@ -238,10 +250,11 @@ new class extends Component {
                     <option value="Ponente">Ponencia</option>
                     <option value="Asistente">Asistencia</option>
                     <option value="Organizador">Organizador</option>
-                    
+
                 </select>
                 <x-input-error :messages="$errors->get('participation_type')" class="mt-2" />
-                <p class="mt-1 text-xs text-slate-500">Este tipo de participación aplicará a todos los conferencistas del evento.</p>
+                <p class="mt-1 text-xs text-slate-500">Este tipo de participación aplicará a todos los conferencistas
+                    del evento.</p>
             </div>
 
             {{-- Institución destino --}}
@@ -266,10 +279,9 @@ new class extends Component {
                 <x-input-error :messages="$errors->get('event_scope')" class="mt-2" />
             </div>
             <div>
-                <x-input-label :value="'URL'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
-                <x-text-input wire:model.defer="event_url" type="url"
-                    class="mt-2 block w-full" placeholder="https://" />
+                <x-input-label :value="'URL'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-text-input wire:model.defer="event_url" type="url" class="mt-2 block w-full"
+                    placeholder="https://" />
                 <x-input-error :messages="$errors->get('event_url')" class="mt-2" />
             </div>
         </div>
@@ -288,8 +300,8 @@ new class extends Component {
                 </p>
             </div>
             <div class="w-full sm:w-72">
-                <x-text-input wire:model.live="search" type="search"
-                    placeholder="Buscar por nombre, institución..." class="w-full" />
+                <x-text-input wire:model.live="search" type="search" placeholder="Buscar por nombre, institución..."
+                    class="w-full" />
             </div>
         </div>
 
@@ -311,15 +323,28 @@ new class extends Component {
                 </thead>
                 <tbody class="divide-y divide-[#f0dede] bg-white">
                     @php
-                        $meses = [1=>'Enero',2=>'Febrero',3=>'Marzo',4=>'Abril',5=>'Mayo',6=>'Junio',
-                                  7=>'Julio',8=>'Agosto',9=>'Septiembre',10=>'Octubre',11=>'Noviembre',12=>'Diciembre'];
+                        $meses = [
+                            1 => 'Enero',
+                            2 => 'Febrero',
+                            3 => 'Marzo',
+                            4 => 'Abril',
+                            5 => 'Mayo',
+                            6 => 'Junio',
+                            7 => 'Julio',
+                            8 => 'Agosto',
+                            9 => 'Septiembre',
+                            10 => 'Octubre',
+                            11 => 'Noviembre',
+                            12 => 'Diciembre'
+                        ];
                     @endphp
                     @forelse ($this->events as $event)
                         @php
-                            $conferencistas = $event->researchers->map(fn($r) =>
-                                trim("{$r->name_1} {$r->name_2} {$r->last_name_1} {$r->last_name_2}")
+                            $conferencistas = $event->researchers->map(
+                                fn($r) =>
+                                    trim("{$r->name_1} {$r->name_2} {$r->last_name_1} {$r->last_name_2}")
                             )->filter()->implode(' - ');
-                            
+
                             $tiposParticipacion = $event->researcherEvents->pluck('participation_type')
                                 ->filter()->unique()->implode(', ');
                         @endphp
@@ -328,14 +353,16 @@ new class extends Component {
                             <td class="px-4 py-3 text-slate-600">{{ $meses[$event->event_month] ?? '—' }}</td>
                             <td class="px-4 py-3 font-semibold text-[#2b2323]">{{ $event->event_name }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $event->event_scope ?? '—' }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $event->hostInstitution?->institution_name ?? '—' }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $event->originInstitution?->institution_name ?? '—' }}</td>
+                            <td class="px-4 py-3 text-slate-600">{{ $event->hostInstitution?->institution_name ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3 text-slate-600">{{ $event->originInstitution?->institution_name ?? '—' }}
+                            </td>
                             <td class="px-4 py-3 text-slate-600">{{ $conferencistas ?: '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $tiposParticipacion ?: '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">
                                 @if ($event->event_url)
-                                    <a href="{{ $event->event_url }}" target="_blank"
-                                        class="text-blue-600 hover:underline">Ver enlace</a>
+                                    <a href="{{ $event->event_url }}" target="_blank" class="text-blue-600 hover:underline">Ver
+                                        enlace</a>
                                 @else
                                     —
                                 @endif

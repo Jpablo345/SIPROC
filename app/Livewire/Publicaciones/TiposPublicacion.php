@@ -22,6 +22,7 @@ class TiposPublicacion extends Component
     public function edit(int $typeId): void
     {
         $type = PublicationType::findOrFail($typeId);
+        $this->authorize('update', $type);
 
         $this->editingId = $type->type_id;
         $this->type_name = $type->type_name;
@@ -34,6 +35,11 @@ class TiposPublicacion extends Component
 
     public function save(): void
     {
+        if ($this->editingId) {
+            $this->authorize('update', PublicationType::findOrFail($this->editingId));
+        } else {
+            $this->authorize('create', PublicationType::class);
+        }
         if (trim($this->type_name) === '') {
             session()->flash('status', 'Completa el nombre del tipo.');
             return;
@@ -54,7 +60,10 @@ class TiposPublicacion extends Component
 
     public function delete(int $typeId): void
     {
-        PublicationType::where('type_id', $typeId)->delete();
+        $type = PublicationType::findOrFail($typeId);
+        $this->authorize('delete', $type);
+        $type->delete();
+
         session()->flash('status', 'Tipo eliminado.');
         $this->resetPage();
     }

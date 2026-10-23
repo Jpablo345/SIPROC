@@ -53,6 +53,7 @@ new class extends Component {
     public function edit(int $publicationId): void
     {
         $book = Book::with(['publication', 'bookType'])->findOrFail($publicationId);
+        $this->authorize('update', $book->publication);
 
         $this->editingId = $book->publication_id;
         $this->title = $book->publication?->title ?? '';
@@ -85,6 +86,11 @@ new class extends Component {
 
     public function save(): void
     {
+        if ($this->editingId) {
+            $this->authorize('update', Publication::findOrFail($this->editingId));
+        } else {
+            $this->authorize('create', Publication::class);
+        }
         if (trim($this->title) === '' || !$this->book_isbn) {
             session()->flash('status', 'Completa el titulo y el ISBN.');
             return;
@@ -135,7 +141,11 @@ new class extends Component {
 
     public function delete(int $publicationId): void
     {
-        Publication::where('publication_id', $publicationId)->delete();
+        //Publication::where('publication_id', $publicationId)->delete();
+        $publication = Publication::findOrFail($publicationId);
+        $this->authorize('delete', $publication);
+        $publication->delete();
+
         session()->flash('status', 'Libro eliminado.');
         $this->resetPage();
     }
@@ -381,10 +391,10 @@ new class extends Component {
                             <td class="px-4 py-3 text-slate-600">
                                 @if($book->publication && $book->publication->researchers->isNotEmpty())
                                                 {{ 
-                                                                                $book->publication->researchers
+                                                                                                                        $book->publication->researchers
                                     ->map(fn($author) => $this->formatResearcherName($author))
                                     ->implode(', ') 
-                                                                            }}
+                                                                                                                    }}
                                 @else
                                     —
                                 @endif

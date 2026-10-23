@@ -24,6 +24,7 @@ new class extends Component {
     public function edit(string $code): void
     {
         $group = ResearchGroup::findOrFail($code);
+        $this->authorize('update', $group);
 
         $this->editingCode = $group->cod_minciencias;
         $this->cod_minciencias = $group->cod_minciencias;
@@ -39,6 +40,11 @@ new class extends Component {
 
     public function save(): void
     {
+        if ($this->editingCode) {
+            $this->authorize('update', ResearchGroup::findOrFail($this->editingCode));
+        } else {
+            $this->authorize('create', ResearchGroup::class);
+        }
         if (trim($this->cod_minciencias) === '' || trim($this->group_name) === '') {
             session()->flash('status', 'Completa el codigo y el nombre del grupo.');
             return;
@@ -66,7 +72,12 @@ new class extends Component {
 
     public function delete(string $code): void
     {
-        ResearchGroup::where('cod_minciencias', $code)->delete();
+        //ResearchGroup::where('cod_minciencias', $code)->delete();
+
+        $group = ResearchGroup::findOrFail($code);
+        $this->authorize('delete', $group);
+        $group->delete();
+
         session()->flash('status', 'Grupo eliminado.');
         $this->resetPage();
     }
@@ -137,11 +148,14 @@ new class extends Component {
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div>
-                <x-input-label for="cod_minciencias" :value="'Codigo Minciencias'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
-                <x-text-input id="cod_minciencias" wire:model.defer="cod_minciencias" type="text" class="mt-2 block w-full" />
+                <x-input-label for="cod_minciencias" :value="'Codigo Minciencias'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-text-input id="cod_minciencias" wire:model.defer="cod_minciencias" type="text"
+                    class="mt-2 block w-full" />
             </div>
             <div>
-                <x-input-label for="group_classification" :value="'Clasificacion'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="group_classification" :value="'Clasificacion'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <select id="group_classification" wire:model="group_classification"
                     class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
                     <option value="">Sin clasificacion</option>
@@ -154,11 +168,13 @@ new class extends Component {
                 </select>
             </div>
             <div class="md:col-span-2">
-                <x-input-label for="group_name" :value="'Nombre del grupo'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="group_name" :value="'Nombre del grupo'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="group_name" wire:model.defer="group_name" type="text" class="mt-2 block w-full" />
             </div>
             <div class="md:col-span-2">
-                <x-input-label for="institution_id" :value="'Institucion'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="institution_id" :value="'Institucion'"
+                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <select id="institution_id" wire:model.defer="institution_id"
                     class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
                     <option value="">Sin asignar</option>
@@ -174,10 +190,12 @@ new class extends Component {
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h3 class="text-lg font-semibold text-[#2b2323]">Grupos registrados</h3>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">{{ $this->groups->total() }} registros</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">{{ $this->groups->total() }}
+                    registros</p>
             </div>
             <div class="w-full sm:w-72">
-                <x-text-input wire:model.live="search" type="search" placeholder="Buscar por codigo, nombre o institucion" class="w-full" />
+                <x-text-input wire:model.live="search" type="search"
+                    placeholder="Buscar por codigo, nombre o institucion" class="w-full" />
             </div>
         </div>
 

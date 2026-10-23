@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Concerns\HasCreator;
 
 class Event extends Model
 {
-    use HasFactory;
+    use HasFactory, HasCreator;
 
     protected $table = 'event';
     protected $primaryKey = 'event_id';

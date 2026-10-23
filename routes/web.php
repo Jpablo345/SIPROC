@@ -11,6 +11,7 @@ use App\Http\Controllers\GoogleAuthController;
 Route::redirect('/', '/login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('dashboard');
     Route::view('investigadores', 'investigadores')->name('investigadores');
     
 
@@ -51,6 +52,5 @@ Route::view('profile', 'profile')
     // Google OAuth
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
-Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('dashboard');
 
 require __DIR__.'/auth.php';
