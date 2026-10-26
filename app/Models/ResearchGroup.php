@@ -17,7 +17,6 @@ class ResearchGroup extends Model
     protected $primaryKey = 'cod_minciencias';
     protected $keyType = 'string';
     public $incrementing = false;
-    public $timestamps = false;
 
     protected $fillable = [
         'cod_minciencias',

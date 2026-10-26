@@ -2,7 +2,9 @@
 
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
@@ -85,15 +87,24 @@ new #[Layout('layouts.guest')]
             return;
         }
 
-        // Un registro sin verificar no bloquea el correo ni el código: se reemplaza.
-        User::whereNull('email_verified_at')
-            ->whereNotNull('user_type')
-            ->where(fn($q) => $q->where('email', $validated['email'])->orWhere('code', $validated['code']))
-            ->delete();
-
         $validated['password'] = Hash::make($validated['password']);
 
-        $user = User::create($validated);
+        try {
+            $user = DB::transaction(function () use ($validated) {
+                // Un registro sin verificar no bloquea el correo ni el código: se reemplaza.
+                User::whereNull('email_verified_at')
+                    ->whereNotNull('user_type')
+                    ->where(fn($q) => $q->where('email', $validated['email'])->orWhere('code', $validated['code']))
+                    ->delete();
+
+                return User::create($validated);
+            });
+        } catch (UniqueConstraintViolationException $e) {
+            // Dos registros simultáneos con el mismo correo/código, o una cuenta antigua sin tipo de usuario.
+            $this->addError('email', 'Ese correo o código ya está en uso. Si ya tienes cuenta, inicia sesión.');
+
+            return;
+        }
 
         try {
             $user->sendOneTimePassword();

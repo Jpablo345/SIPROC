@@ -14,7 +14,6 @@ class BookType extends Model
 
     protected $table = 'book_type';
     protected $primaryKey = 'book_type_id';
-    public $timestamps = false;
 
     protected $fillable = [
         'type_name',

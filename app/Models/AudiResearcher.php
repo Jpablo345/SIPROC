@@ -21,5 +21,6 @@ class AudiResearcher extends Model
         'fecha_registro',
         'usuario',
         'accion',
+        'app_user_id',
     ];
 }

@@ -175,7 +175,7 @@ new class extends Component {
             ->when($term !== '', function ($query) use ($term) {
                 $like = '%' . $term . '%';
                 $query->where('event_name', 'ilike', $like)
-                    ->orWhere('event_year', 'ilike', $like)
+                    ->orWhereRaw('CAST(event_year AS TEXT) LIKE ?', [$like])
                     ->orWhere('event_scope', 'ilike', $like)
                     ->orWhereHas('hostInstitution', fn($q) => $q->where('institution_name', 'ilike', $like))
                     ->orWhereHas('originInstitution', fn($q) => $q->where('institution_name', 'ilike', $like))
