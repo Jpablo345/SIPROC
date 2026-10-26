@@ -18,7 +18,6 @@ class Researcher extends Model
     protected $primaryKey = 'researcher_id';
     public $incrementing = true;       // ahora autoincremental
     protected $keyType = 'int';
-    public $timestamps = false;
 
     protected $fillable = [
         'document',       // documento (cédula, pasaporte, etc.) — opcional

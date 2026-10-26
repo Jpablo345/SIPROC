@@ -15,7 +15,6 @@ class Event extends Model
 
     protected $table = 'event';
     protected $primaryKey = 'event_id';
-    public $timestamps = false;
 
     protected $fillable = [
         'event_name',

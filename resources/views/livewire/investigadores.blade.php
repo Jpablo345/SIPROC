@@ -68,6 +68,15 @@ new class extends Component {
             'name_1.required' => 'El primer nombre es obligatorio.',
             'last_name_1.required' => 'El primer apellido es obligatorio.',
             'email.unique' => 'Este correo ya está registrado.',
+            'email.email' => 'El correo no es válido.',
+            'email.max' => 'El correo no puede superar 100 caracteres.',
+            'document.max' => 'El documento no puede superar 20 caracteres.',
+            'name_1.max' => 'El primer nombre no puede superar 50 caracteres.',
+            'name_2.max' => 'El segundo nombre no puede superar 50 caracteres.',
+            'last_name_1.max' => 'El primer apellido no puede superar 50 caracteres.',
+            'last_name_2.max' => 'El segundo apellido no puede superar 50 caracteres.',
+            'phone.max' => 'El teléfono no puede superar 30 caracteres.',
+            'cod_minciencias.exists' => 'El grupo seleccionado no existe.',
         ]);
 
         $data = [

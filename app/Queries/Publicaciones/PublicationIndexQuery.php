@@ -27,7 +27,7 @@ class PublicationIndexQuery
 
                 $query->where(function (Builder $inner) use ($like): void {
                     $inner->whereRaw('LOWER(title) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(publication_year) LIKE ?', [$like])
+                        ->orWhereRaw('CAST(publication_year AS TEXT) LIKE ?', [$like])
                         ->orWhereRaw('LOWER(scope) LIKE ?', [$like])
                         ->orWhereHas('type', function (Builder $typeQuery) use ($like): void {
                             $typeQuery->whereRaw('LOWER(type_name) LIKE ?', [$like]);

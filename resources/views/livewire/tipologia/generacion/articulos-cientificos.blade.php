@@ -224,7 +224,7 @@ new class extends Component {
                 $like = '%' . $term . '%';
                 $query->whereHas('publication', function ($q) use ($like) {
                     $q->where('title', 'ilike', $like)
-                        ->orWhere('publication_year', 'ilike', $like)
+                        ->orWhereRaw('CAST(publication_year AS TEXT) LIKE ?', [$like])
                         ->orWhere('scope', 'ilike', $like)
                         ->orWhere('country_publication', 'ilike', $like);
                 })
