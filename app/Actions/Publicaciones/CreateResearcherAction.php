@@ -9,46 +9,52 @@ use Illuminate\Support\Facades\DB;
 
 class CreateResearcherAction
 {
+    /**
+     * Crea un investigador y, si se pide, su grupo nuevo (con institución nueva o existente).
+     *
+     * @param  array<string, mixed>  $data  Campos de App\Livewire\Forms\ResearcherForm, ya validados.
+     */
     public function execute(array $data): Researcher
     {
         return DB::transaction(function () use ($data): Researcher {
-            $institutionId = $data['modal_institution_id'] ?? null;
+            $groupCode = $data['cod_minciencias'] ?? null;
 
-            if ($data['modal_create_institution']) {
-                $institution = Institution::create([
-                    'institution_name' => trim($data['modal_institution_name']),
-                    'institution_type' => $data['modal_institution_type'],
-                    'country' => $data['modal_institution_country'],
-                    'city' => $data['modal_institution_city'],
-                    'website' => $data['modal_institution_website'],
-                ]);
+            if (! empty($data['create_group'])) {
+                $institutionId = $data['institution_id'] ?? null;
 
-                $institutionId = $institution->institution_id;
-            }
+                if (! empty($data['create_institution'])) {
+                    $institutionId = Institution::create([
+                        'institution_name' => trim($data['institution_name']),
+                        'institution_type' => $this->clean($data['institution_type'] ?? null),
+                        'country' => $this->clean($data['institution_country'] ?? null),
+                        'city' => $this->clean($data['institution_city'] ?? null),
+                        'website' => $this->clean($data['institution_website'] ?? null),
+                    ])->institution_id;
+                }
 
-            $groupCode = $data['modal_cod_minciencias'] ?? null;
-
-            if ($data['modal_create_group']) {
-                $group = ResearchGroup::create([
-                    'cod_minciencias' => trim($data['modal_group_code']),
-                    'group_name' => trim($data['modal_group_name']),
-                    'group_classification' => $data['modal_group_classification'],
+                $groupCode = ResearchGroup::create([
+                    'cod_minciencias' => trim($data['group_code']),
+                    'group_name' => trim($data['group_name']),
+                    'group_classification' => $this->clean($data['group_classification'] ?? null),
                     'institution_id' => $institutionId,
-                ]);
-
-                $groupCode = $group->cod_minciencias;
+                ])->cod_minciencias;
             }
 
             return Researcher::create([
-                'document' => !empty($data['modal_document'])
-                    ? trim($data['modal_document'])
-                    : null,
-                'name_1' => trim($data['modal_name_1']),
-                'name_2' => !empty($data['modal_name_2']) ? trim($data['modal_name_2']) : null,
-                'last_name_1' => trim($data['modal_last_name_1']),
-                'last_name_2' => !empty($data['modal_last_name_2']) ? trim($data['modal_last_name_2']) : null,
+                'document' => $this->clean($data['document'] ?? null),
+                'name_1' => trim($data['name_1']),
+                'name_2' => $this->clean($data['name_2'] ?? null),
+                'last_name_1' => trim($data['last_name_1']),
+                'last_name_2' => $this->clean($data['last_name_2'] ?? null),
                 'cod_minciencias' => $groupCode,
             ]);
         });
+    }
+
+    private function clean(?string $value): ?string
+    {
+        $value = $value !== null ? trim($value) : null;
+
+        return $value === '' ? null : $value;
     }
 }
