@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\ValidatesPublication;
 use App\Models\Article;
 use App\Models\Institution;
 use App\Models\Journal;
@@ -14,7 +15,7 @@ use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
 new class extends Component {
-    use WithPagination;
+    use WithPagination, ValidatesPublication;
 
     public string $search = '';
     public ?int $editingId = null;
@@ -143,13 +144,20 @@ new class extends Component {
             $this->authorize('create', Publication::class);
         }
         $this->validate(
-            ['url' => ['nullable', 'string', 'max:300', 'url:http,https']],
-            ['url.url' => 'La URL debe ser válida y empezar con http:// o https://.']
+            [
+                ...$this->publicationRules(),
+                'journal_issn' => ['required', 'string', 'exists:journal,journal_issn'],
+                'doi' => ['nullable', 'string', 'max:200', Rule::unique('article', 'doi')->ignore($this->editingId, 'publication_id')],
+                ...$this->authorRules(),
+            ],
+            [
+                ...$this->publicationMessages(),
+                'journal_issn.required' => 'Selecciona la revista del artículo.',
+                'journal_issn.exists' => 'La revista seleccionada no existe.',
+                'doi.unique' => 'Este DOI ya está registrado en otra publicación.',
+                'doi.max' => 'El DOI no puede superar 200 caracteres.',
+            ]
         );
-        if (trim($this->title) === '' || !$this->journal_issn) {
-            session()->flash('status', 'Completa el titulo y la revista.');
-            return;
-        }
 
         $publicationData = [
             'title' => trim($this->title),
@@ -315,6 +323,8 @@ new class extends Component {
                 {{ session('status') }}
             </div>
         @endif
+
+        <x-validation-errors :bag="$errors" class="mt-4" />
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div class="md:col-span-2">

@@ -60,8 +60,10 @@ class AutoresSelector extends Component
 
         $this->authorResults = Researcher::query()
             ->with('researchGroup')
-            ->where(function ($query) use ($like) {
-                $query->where('researcher_id', 'ilike', $like)
+            ->where(function ($query) use ($like, $term) {
+                // researcher_id es bigint: ilike sobre él falla en PostgreSQL, se compara exacto.
+                $query->when(ctype_digit($term), fn($q) => $q->orWhere('researcher_id', (int) $term))
+                    ->orWhere('document', 'ilike', $like)
                     ->orWhere('name_1', 'ilike', $like)
                     ->orWhere('name_2', 'ilike', $like)
                     ->orWhere('last_name_1', 'ilike', $like)
@@ -153,7 +155,9 @@ class AutoresSelector extends Component
             $researcher = Researcher::create([
                 'document' => !empty($data['modal_document']) ? trim($data['modal_document']) : null,
                 'name_1' => $name1,
+                'name_2' => !empty($data['modal_name_2']) ? trim($data['modal_name_2']) : null,
                 'last_name_1' => $lastName1,
+                'last_name_2' => !empty($data['modal_last_name_2']) ? trim($data['modal_last_name_2']) : null,
                 'cod_minciencias' => $groupCode,
             ]);
 

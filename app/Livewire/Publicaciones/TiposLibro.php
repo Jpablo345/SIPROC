@@ -3,6 +3,7 @@
 namespace App\Livewire\Publicaciones;
 
 use App\Models\BookType;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -40,8 +41,13 @@ class TiposLibro extends Component
         } else {
             $this->authorize('create', BookType::class);
         }
+        $this->type_name = trim($this->type_name);
         $this->validate([
-            'type_name' => 'required|string|max:255',
+            'type_name' => ['required', 'string', 'max:50', Rule::unique('book_type', 'type_name')->ignore($this->editingId, 'book_type_id')],
+        ], [
+            'type_name.required' => 'Completa el nombre del tipo de libro.',
+            'type_name.max' => 'El nombre no puede superar 50 caracteres.',
+            'type_name.unique' => 'Ya existe un tipo de libro con ese nombre.',
         ]);
 
         $data = ['type_name' => trim($this->type_name)];
@@ -61,6 +67,13 @@ class TiposLibro extends Component
     {
         $bookType = BookType::findOrFail($bookTypeId);
         $this->authorize('delete', $bookType);
+
+        // book.book_type_id tiene FK restrict: borrar un tipo en uso falla en la BD.
+        if ($bookType->books()->exists()) {
+            session()->flash('status', 'No se puede eliminar: hay libros de este tipo.');
+            return;
+        }
+
         $bookType->delete();
 
         session()->flash('status', 'Tipo de libro eliminado.');
