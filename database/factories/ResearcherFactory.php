@@ -11,10 +11,11 @@ class ResearcherFactory extends Factory
 
     public function definition(): array
     {
-        $id = str_pad((string) $this->faker->unique()->numberBetween(1, 9999999), 7, '0', STR_PAD_LEFT);
+        // researcher_id es autoincremental; el número de identificación va en document.
+        $document = str_pad((string) $this->faker->unique()->numberBetween(1, 9999999), 7, '0', STR_PAD_LEFT);
 
         return [
-            'researcher_id' => $id,
+            'document' => $document,
             'name_1' => $this->faker->firstName(),
             'name_2' => $this->faker->optional()->firstName(),
             'last_name_1' => $this->faker->lastName(),
