@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Publicaciones;
 
-use App\Actions\Publicaciones\CreateResearcherAction;
 use App\Actions\Publicaciones\SavePublicationAction;
 use App\Livewire\Concerns\ValidatesPublication;
+use App\Livewire\Forms\ResearcherForm;
 use App\Models\BookType;
 use App\Models\Institution;
 use App\Models\Journal;
@@ -46,25 +46,8 @@ class FormularioPublicacion extends Component
     public ?int $articleTypeId = null;
     public ?int $bookTypeId = null;
 
-    public ?string $modal_document = null;
-    public string $modal_name_1 = '';
-    public string $modal_name_2 = '';
-    public string $modal_last_name_1 = '';
-    public string $modal_last_name_2 = '';
-    public ?string $modal_cod_minciencias = null;
-
-    public bool $modal_create_group = false;
-    public string $modal_group_code = '';
-    public string $modal_group_name = '';
-    public ?string $modal_group_classification = null;
-    public ?int $modal_institution_id = null;
-
-    public bool $modal_create_institution = false;
-    public string $modal_institution_name = '';
-    public ?string $modal_institution_type = null;
-    public ?string $modal_institution_country = null;
-    public ?string $modal_institution_city = null;
-    public ?string $modal_institution_website = null;
+    // Modal "crear investigador"
+    public ResearcherForm $researcherForm;
 
     public function mount(?int $publicationId = null): void
     {
@@ -111,29 +94,13 @@ class FormularioPublicacion extends Component
             return;
         }
 
-        $like = '%' . $term . '%';
-
         $this->authorResults = Researcher::query()
             ->with('researchGroup')
-            ->where(function ($query) use ($like, $term) {
-                // researcher_id es bigint: ilike sobre él falla en PostgreSQL, se compara exacto.
-                $query->when(ctype_digit($term), fn($q) => $q->orWhere('researcher_id', (int) $term))
-                    ->orWhere('document', 'ilike', $like)
-                    ->orWhere('name_1', 'ilike', $like)
-                    ->orWhere('name_2', 'ilike', $like)
-                    ->orWhere('last_name_1', 'ilike', $like)
-                    ->orWhere('last_name_2', 'ilike', $like);
-            })
+            ->search($term)
             ->orderBy('last_name_1')
             ->limit(8)
             ->get()
-            ->map(function (Researcher $researcher) {
-                return [
-                    'researcher_id' => $researcher->researcher_id,
-                    'name' => $this->formatResearcherName($researcher),
-                    'group' => $researcher->researchGroup?->group_name,
-                ];
-            })
+            ->map(fn (Researcher $researcher) => $researcher->toOption())
             ->toArray();
     }
 
@@ -190,11 +157,7 @@ class FormularioPublicacion extends Component
             return;
         }
 
-        $this->selectedAuthors[] = [
-            'researcher_id' => $researcher->researcher_id,
-            'name' => $this->formatResearcherName($researcher),
-            'group' => $researcher->researchGroup?->group_name,
-        ];
+        $this->selectedAuthors[] = $researcher->toOption();
 
         $this->authorSearch = '';
         $this->authorResults = [];
@@ -208,28 +171,18 @@ class FormularioPublicacion extends Component
 
     public function abrirModal(): void
     {
-        $this->resetModalFields();
+        $this->researcherForm->reset();
+        $this->researcherForm->resetValidation();
         $this->dispatch('open-modal', name: 'crear-investigador');
     }
 
     public function crearYSeleccionar(): void
     {
-        $this->authorize('create', Researcher::class);
-        if ($this->modal_create_group) {
-            $this->authorize('create', ResearchGroup::class);
-        }
-        if ($this->modal_create_institution) {
-            $this->authorize('create', Institution::class);
-        }
+        $researcher = $this->researcherForm->store();
 
-        $data = $this->validate($this->modalRules(), $this->modalMessages());
-
-        $newResearcher = app(CreateResearcherAction::class)->execute($data);
-
-        $this->agregarAutor((string) $newResearcher->researcher_id);
+        $this->agregarAutor((string) $researcher->researcher_id);
 
         $this->dispatch('close-modal', name: 'crear-investigador');
-        $this->resetModalFields();
     }
 
     public function guardar(): void
@@ -274,7 +227,7 @@ class FormularioPublicacion extends Component
 
     public function cargarPublicacion(int $publicationId): void
     {
-        $publication = Publication::with(['article.journal', 'book', 'researchers', 'type'])->findOrFail($publicationId);
+        $publication = Publication::with(['article.journal', 'book', 'researchers.researchGroup', 'type'])->findOrFail($publicationId);
 
         $this->publicationId = $publication->publication_id;
         $this->title = $publication->title;
@@ -303,13 +256,7 @@ class FormularioPublicacion extends Component
             ->sortBy(function (Researcher $researcher) {
                 return $researcher->pivot->author_order ?? 999;
             })
-            ->map(function (Researcher $researcher) {
-                return [
-                    'researcher_id' => $researcher->researcher_id,
-                    'name' => $this->formatResearcherName($researcher),
-                    'group' => $researcher->researchGroup?->group_name,
-                ];
-            })
+            ->map(fn (Researcher $researcher) => $researcher->toOption())
             ->values()
             ->toArray();
     }
@@ -429,97 +376,5 @@ class FormularioPublicacion extends Component
         $this->authorResults = [];
         $this->selectedAuthors = [];
         $this->resetValidation();
-    }
-
-    private function formatResearcherName(Researcher $researcher): string
-    {
-        return trim(implode(' ', array_filter([
-            $researcher->name_1,
-            $researcher->name_2,
-            $researcher->last_name_1,
-            $researcher->last_name_2,
-        ])));
-    }
-
-    private function modalRules(): array
-    {
-        return [
-            'modal_document' => ['nullable', 'string', 'max:20', 'unique:researcher,document'],
-            'modal_name_1' => ['required', 'string', 'max:50'],
-            'modal_name_2' => ['nullable', 'string', 'max:50'],
-            'modal_last_name_1' => ['required', 'string', 'max:50'],
-            'modal_last_name_2' => ['nullable', 'string', 'max:50'],
-            'modal_cod_minciencias' => [
-                Rule::requiredIf(fn() => !$this->modal_create_group),
-                'nullable',
-                'string',
-                'max:50',
-            ],
-            'modal_group_code' => [
-                Rule::requiredIf(fn() => $this->modal_create_group),
-                'nullable',
-                'string',
-                'max:50',
-            ],
-            'modal_group_name' => [
-                Rule::requiredIf(fn() => $this->modal_create_group),
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'modal_group_classification' => ['nullable', 'string', 'max:50'],
-            'modal_institution_id' => ['nullable', 'integer'],
-            'modal_create_group' => ['boolean'],
-            'modal_create_institution' => ['boolean'],
-            'modal_institution_name' => [
-                Rule::requiredIf(fn() => $this->modal_create_institution),
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'modal_institution_type' => ['nullable', 'string', 'max:50'],
-            'modal_institution_country' => ['nullable', 'string', 'max:50'],
-            'modal_institution_city' => ['nullable', 'string', 'max:50'],
-            'modal_institution_website' => ['nullable', 'string', 'max:255', 'url:http,https'],
-        ];
-    }
-
-    private function modalMessages(): array
-    {
-        return [
-            'modal_document.unique' => 'Este número de documento ya está registrado.',
-            'modal_name_1.required' => 'El primer nombre es obligatorio.',
-            'modal_name_2.string' => 'El segundo nombre debe ser una cadena de texto.',
-            'modal_name_2.max' => 'El segundo nombre debe tener como máximo 50 caracteres.',
-            'modal_last_name_1.required' => 'El primer apellido es obligatorio.',
-            'modal_last_name_2.string' => 'El segundo apellido debe ser una cadena de texto.',
-            'modal_last_name_2.max' => 'El segundo apellido debe tener como máximo 50 caracteres.',
-            'modal_cod_minciencias.required' => 'Selecciona un grupo existente.',
-            'modal_group_code.required' => 'El codigo del grupo es obligatorio.',
-            'modal_group_name.required' => 'El nombre del grupo es obligatorio.',
-            'modal_institution_name.required' => 'El nombre de la institucion es obligatorio.',
-        ];
-    }
-
-    private function resetModalFields(): void
-    {
-        $this->modal_document = null;
-        $this->modal_name_1 = '';
-        $this->modal_name_2 = '';
-        $this->modal_last_name_1 = '';
-        $this->modal_last_name_2 = '';
-        $this->modal_cod_minciencias = null;
-        $this->modal_create_group = false;
-        $this->modal_group_code = '';
-        $this->modal_group_name = '';
-        $this->modal_group_classification = null;
-        $this->modal_institution_id = null;
-        $this->modal_create_institution = false;
-        $this->modal_institution_name = '';
-        $this->modal_institution_type = null;
-        $this->modal_institution_country = null;
-        $this->modal_institution_city = null;
-        $this->modal_institution_website = null;
-        $this->resetErrorBag();
     }
 }

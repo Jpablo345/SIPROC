@@ -63,16 +63,7 @@ new class extends Component {
 
         // Cargar conferencistas
         $this->selectedSpeakers = $event->researcherEvents
-            ->map(fn($re) => [
-                'researcher_id' => $re->researcher->researcher_id,
-                'name' => trim(implode(' ', array_filter([
-                    $re->researcher->name_1,
-                    $re->researcher->name_2,
-                    $re->researcher->last_name_1,
-                    $re->researcher->last_name_2,
-                ]))),
-                'group' => $re->researcher->researchGroup?->group_name,
-            ])
+            ->map(fn($re) => $re->researcher->toOption())
             ->values()
             ->toArray();
 
