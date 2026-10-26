@@ -49,6 +49,10 @@ new class extends Component {
         } else {
             $this->authorize('create', Publication::class);
         }
+        $this->validate(
+            ['url' => ['nullable', 'string', 'max:300', 'url:http,https']],
+            ['url.url' => 'La URL debe ser válida y empezar con http:// o https://.']
+        );
         if (trim($this->title) === '') {
             session()->flash('status', 'Completa el titulo de la publicacion.');
             return;
@@ -197,6 +201,7 @@ new class extends Component {
                     class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="url" wire:model.defer="url" type="url" class="mt-2 block w-full"
                     placeholder="https://" />
+                <x-input-error :messages="$errors->get('url')" class="mt-2" />
             </div>
         </div>
     </div>

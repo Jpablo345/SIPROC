@@ -91,6 +91,10 @@ new class extends Component {
         } else {
             $this->authorize('create', Publication::class);
         }
+        $this->validate(
+            ['url' => ['nullable', 'string', 'max:300', 'url:http,https']],
+            ['url.url' => 'La URL debe ser válida y empezar con http:// o https://.']
+        );
         if (trim($this->title) === '' || !$this->book_isbn) {
             session()->flash('status', 'Completa el titulo y el ISBN.');
             return;
@@ -305,6 +309,7 @@ new class extends Component {
                 <x-input-label for="url" :value="'URL'"
                     class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="url" wire:model="url" type="url" class="mt-2 block w-full" placeholder="https://" />
+                <x-input-error :messages="$errors->get('url')" class="mt-2" />
             </div>
             <div>
                 <x-input-label for="book_isbn" :value="'ISBN'"

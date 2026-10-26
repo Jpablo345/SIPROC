@@ -137,6 +137,8 @@ class IndexPublicaciones extends Component
     // Exportación a Excel
     public function exportExcel()
     {
+        $this->authorize('viewAny', Publication::class);
+
         $publications = $this->getPublicationsQueryProperty()->get();
         return Excel::download(new PublicationsExport($publications), 'publicaciones_filtradas.xlsx');
     }
@@ -144,6 +146,8 @@ class IndexPublicaciones extends Component
     // Exportación a PDF
     public function exportPdf()
     {
+        $this->authorize('viewAny', Publication::class);
+
         $publications = $this->getPublicationsQueryProperty()->get();
 
         $pdf = Pdf::loadView('exports.publications-pdf', compact('publications'))

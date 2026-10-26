@@ -83,6 +83,8 @@ class InstitucionSelector extends Component
     
     public function createInstitution(): void
     {
+        $this->authorize('create', Institution::class);
+
         $data = $this->validate($this->modalRules(), $this->modalMessages());
         
         $institution = Institution::create([
@@ -127,7 +129,7 @@ class InstitucionSelector extends Component
             'modal_institution_type' => ['nullable', 'string', 'max:50'],
             'modal_institution_country' => ['nullable', 'string', 'max:100'],
             'modal_institution_city' => ['nullable', 'string', 'max:100'],
-            'modal_institution_website' => ['nullable', 'url', 'max:255'],
+            'modal_institution_website' => ['nullable', 'url:http,https', 'max:255'],
         ];
     }
     
