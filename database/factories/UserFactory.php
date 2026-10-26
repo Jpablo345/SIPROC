@@ -26,11 +26,32 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'email' => fake()->unique()->userName() . '@ufpso.edu.co',
+            'user_type' => 'student',
+            'code' => fake()->unique()->numerify('#######'),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Docente / investigador: código de 5 dígitos.
+     */
+    public function teacher(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'user_type' => 'teacher',
+            'code' => fake()->unique()->numerify('#####'),
+        ]);
+    }
+
+    /**
+     * Asigna un rol de spatie/laravel-permission (Estudiante, Docente o Administrador).
+     */
+    public function withRole(string $role): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->assignRole($role));
     }
 
     /**
