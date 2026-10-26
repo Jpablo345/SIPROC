@@ -40,6 +40,7 @@
             <div class="mt-6">
                 <x-input-label for="type_name" :value="'Nombre del tipo'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="type_name" wire:model.defer="type_name" type="text" class="mt-2 block w-full" />
+                <x-input-error :messages="$errors->get('type_name')" class="mt-2" />
             </div>
         </div>
 
