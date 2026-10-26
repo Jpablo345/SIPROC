@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
+
+        // Usuario de la app para los triggers de auditoría (también aplica a /livewire/update).
+        $middleware->appendToGroup('web', \App\Http\Middleware\SetDatabaseAuditUser::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

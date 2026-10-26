@@ -16,7 +16,6 @@ class Publication extends Model
 
     protected $table = 'publication';
     protected $primaryKey = 'publication_id';
-    public $timestamps = false;
 
     protected $fillable = [
         'title',
