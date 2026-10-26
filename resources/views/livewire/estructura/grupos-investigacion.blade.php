@@ -2,6 +2,7 @@
 
 use App\Models\Institution;
 use App\Models\ResearchGroup;
+use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
@@ -45,10 +46,20 @@ new class extends Component {
         } else {
             $this->authorize('create', ResearchGroup::class);
         }
-        if (trim($this->cod_minciencias) === '' || trim($this->group_name) === '') {
-            session()->flash('status', 'Completa el codigo y el nombre del grupo.');
-            return;
-        }
+        $this->validate([
+            'cod_minciencias' => ['required', 'string', 'max:50', Rule::unique('research_group', 'cod_minciencias')->ignore($this->editingCode, 'cod_minciencias')],
+            'group_name' => ['required', 'string', 'max:255'],
+            'group_classification' => ['nullable', 'string', 'max:50'],
+            'institution_id' => ['nullable', 'integer', 'exists:institution,institution_id'],
+        ], [
+            'cod_minciencias.required' => 'El código Minciencias es obligatorio.',
+            'cod_minciencias.max' => 'El código no puede superar 50 caracteres.',
+            'cod_minciencias.unique' => 'Ya existe un grupo con este código.',
+            'group_name.required' => 'El nombre del grupo es obligatorio.',
+            'group_name.max' => 'El nombre no puede superar 255 caracteres.',
+            'group_classification.max' => 'La clasificación no puede superar 50 caracteres.',
+            'institution_id.exists' => 'La institución seleccionada no existe.',
+        ]);
 
         $data = [
             'cod_minciencias' => trim($this->cod_minciencias),
@@ -145,6 +156,8 @@ new class extends Component {
                 </button>
             </div>
         </div>
+
+        <x-validation-errors :bag="$errors" class="mt-4" />
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div>

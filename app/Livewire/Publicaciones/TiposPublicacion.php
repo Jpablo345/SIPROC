@@ -3,6 +3,7 @@
 namespace App\Livewire\Publicaciones;
 
 use App\Models\PublicationType;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -40,10 +41,14 @@ class TiposPublicacion extends Component
         } else {
             $this->authorize('create', PublicationType::class);
         }
-        if (trim($this->type_name) === '') {
-            session()->flash('status', 'Completa el nombre del tipo.');
-            return;
-        }
+        $this->type_name = trim($this->type_name);
+        $this->validate([
+            'type_name' => ['required', 'string', 'max:60', Rule::unique('publication_type', 'type_name')->ignore($this->editingId, 'type_id')],
+        ], [
+            'type_name.required' => 'Completa el nombre del tipo.',
+            'type_name.max' => 'El nombre no puede superar 60 caracteres.',
+            'type_name.unique' => 'Ya existe un tipo con ese nombre.',
+        ]);
 
         $data = ['type_name' => trim($this->type_name)];
 
@@ -62,6 +67,13 @@ class TiposPublicacion extends Component
     {
         $type = PublicationType::findOrFail($typeId);
         $this->authorize('delete', $type);
+
+        // publication.type_id tiene FK restrict: borrar un tipo en uso falla en la BD.
+        if ($type->publications()->exists()) {
+            session()->flash('status', 'No se puede eliminar: hay publicaciones de este tipo.');
+            return;
+        }
+
         $type->delete();
 
         session()->flash('status', 'Tipo eliminado.');

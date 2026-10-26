@@ -2,6 +2,7 @@
 
 use App\Models\ResearchGroup;
 use App\Models\Researcher;
+use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
@@ -9,9 +10,9 @@ new class extends Component {
     use WithPagination;
 
     public string $search = '';
-    public ?string $editingId = null;
+    public ?int $editingId = null;
 
-    public string $researcher_id = '';
+    public ?string $document = null;
     public string $name_1 = '';
     public ?string $name_2 = null;
     public string $last_name_1 = '';
@@ -25,13 +26,13 @@ new class extends Component {
         $this->resetPage();
     }
 
-    public function edit(string $researcherId): void
+    public function edit(int $researcherId): void
     {
         $researcher = Researcher::findOrFail($researcherId);
         $this->authorize('update', $researcher);
 
         $this->editingId = $researcher->researcher_id;
-        $this->researcher_id = $researcher->researcher_id;
+        $this->document = $researcher->document;
         $this->name_1 = $researcher->name_1;
         $this->name_2 = $researcher->name_2;
         $this->last_name_1 = $researcher->last_name_1;
@@ -53,20 +54,31 @@ new class extends Component {
         } else {
             $this->authorize('create', Researcher::class);
         }
-        if (trim($this->researcher_id) === '' || trim($this->name_1) === '' || trim($this->last_name_1) === '') {
-            session()->flash('status', 'Completa el documento, nombre y primer apellido.');
-            return;
-        }
+        $this->validate([
+            'document' => ['nullable', 'string', 'max:20', Rule::unique('researcher', 'document')->ignore($this->editingId, 'researcher_id')],
+            'name_1' => ['required', 'string', 'max:50'],
+            'name_2' => ['nullable', 'string', 'max:50'],
+            'last_name_1' => ['required', 'string', 'max:50'],
+            'last_name_2' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'email', 'max:100', Rule::unique('researcher', 'email')->ignore($this->editingId, 'researcher_id')],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'cod_minciencias' => ['nullable', 'string', 'exists:research_group,cod_minciencias'],
+        ], [
+            'document.unique' => 'Este número de documento ya está registrado.',
+            'name_1.required' => 'El primer nombre es obligatorio.',
+            'last_name_1.required' => 'El primer apellido es obligatorio.',
+            'email.unique' => 'Este correo ya está registrado.',
+        ]);
 
         $data = [
-            'researcher_id' => trim($this->researcher_id),
+            'document' => $this->document ? trim($this->document) : null,
             'name_1' => trim($this->name_1),
             'name_2' => $this->name_2 ? trim($this->name_2) : null,
             'last_name_1' => trim($this->last_name_1),
             'last_name_2' => $this->last_name_2 ? trim($this->last_name_2) : null,
             'email' => $this->email ? trim($this->email) : null,
             'phone' => $this->phone ? trim($this->phone) : null,
-            'cod_minciencias' => $this->cod_minciencias,
+            'cod_minciencias' => $this->cod_minciencias ?: null,
         ];
 
         if ($this->editingId) {
@@ -80,7 +92,7 @@ new class extends Component {
         $this->resetForm();
     }
 
-    public function delete(string $researcherId): void
+    public function delete(int $researcherId): void
     {
         //Researcher::where('researcher_id', $researcherId)->delete();
         $researcher = Researcher::findOrFail($researcherId);
@@ -100,7 +112,7 @@ new class extends Component {
             ->when($term !== '', function ($query) use ($term) {
                 $like = '%' . $term . '%';
                 $query->where(function ($inner) use ($like) {
-                    $inner->where('researcher_id', 'ilike', $like)
+                    $inner->where('document', 'ilike', $like)
                         ->orWhere('name_1', 'ilike', $like)
                         ->orWhere('name_2', 'ilike', $like)
                         ->orWhere('last_name_1', 'ilike', $like)
@@ -126,7 +138,7 @@ new class extends Component {
     private function resetForm(): void
     {
         $this->editingId = null;
-        $this->researcher_id = '';
+        $this->document = null;
         $this->name_1 = '';
         $this->name_2 = null;
         $this->last_name_1 = '';
@@ -165,10 +177,11 @@ new class extends Component {
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div>
-                <x-input-label for="researcher_id" :value="'Documento'"
+                <x-input-label for="document" :value="'Documento'"
                     class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
-                <x-text-input id="researcher_id" wire:model.defer="researcher_id" type="text"
+                <x-text-input id="document" wire:model.defer="document" type="text"
                     class="mt-2 block w-full" />
+                <x-input-error :messages="$errors->get('document')" class="mt-2" />
             </div>
             <div>
                 <x-input-label for="cod_minciencias" :value="'Grupo Minciencias'"
@@ -180,36 +193,43 @@ new class extends Component {
                         <option value="{{ $group->cod_minciencias }}">{{ $group->group_name }}</option>
                     @endforeach
                 </select>
+                <x-input-error :messages="$errors->get('cod_minciencias')" class="mt-2" />
             </div>
             <div>
                 <x-input-label for="name_1" :value="'Primer nombre'"
                     class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="name_1" wire:model.defer="name_1" type="text" class="mt-2 block w-full" />
+                <x-input-error :messages="$errors->get('name_1')" class="mt-2" />
             </div>
             <div>
                 <x-input-label for="name_2" :value="'Segundo nombre'"
                     class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="name_2" wire:model.defer="name_2" type="text" class="mt-2 block w-full" />
+                <x-input-error :messages="$errors->get('name_2')" class="mt-2" />
             </div>
             <div>
                 <x-input-label for="last_name_1" :value="'Primer apellido'"
                     class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="last_name_1" wire:model.defer="last_name_1" type="text" class="mt-2 block w-full" />
+                <x-input-error :messages="$errors->get('last_name_1')" class="mt-2" />
             </div>
             <div>
                 <x-input-label for="last_name_2" :value="'Segundo apellido'"
                     class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="last_name_2" wire:model.defer="last_name_2" type="text" class="mt-2 block w-full" />
+                <x-input-error :messages="$errors->get('last_name_2')" class="mt-2" />
             </div>
             <div>
                 <x-input-label for="email" :value="'Correo'"
                     class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="email" wire:model.defer="email" type="email" class="mt-2 block w-full" />
+                <x-input-error :messages="$errors->get('email')" class="mt-2" />
             </div>
             <div>
                 <x-input-label for="phone" :value="'Telefono'"
                     class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
                 <x-text-input id="phone" wire:model.defer="phone" type="text" class="mt-2 block w-full" />
+                <x-input-error :messages="$errors->get('phone')" class="mt-2" />
             </div>
         </div>
     </div>
@@ -248,7 +268,7 @@ new class extends Component {
                 <tbody class="divide-y divide-[#f0dede] bg-white">
                     @forelse ($this->researchers as $researcher)
                         <tr wire:key="researcher-{{ $researcher->researcher_id }}" class="hover:bg-[#fff7f7]">
-                            <td class="px-4 py-3 font-semibold text-[#2b2323]">{{ $researcher->researcher_id }}</td>
+                            <td class="px-4 py-3 font-semibold text-[#2b2323]">{{ $researcher->document ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">
                                 {{ $researcher->name_1 }} {{ $researcher->name_2 }} {{ $researcher->last_name_1 }}
                                 {{ $researcher->last_name_2 }}
@@ -260,11 +280,11 @@ new class extends Component {
                             <td class="px-4 py-3 text-slate-600">{{ $researcher->researchGroup?->group_name ?? '—' }}</td>
                             <td class="px-4 py-3 text-right">
                                 <div class="flex justify-end gap-2">
-                                    <button type="button" wire:click="edit('{{ $researcher->researcher_id }}')"
+                                    <button type="button" wire:click="edit({{ $researcher->researcher_id }})"
                                         class="rounded-full border border-[#9c1c1c]/30 px-3 py-1 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
                                         Editar
                                     </button>
-                                    <button type="button" wire:click="delete('{{ $researcher->researcher_id }}')"
+                                    <button type="button" wire:click="delete({{ $researcher->researcher_id }})"
                                         onclick="confirm('Seguro que deseas eliminar este investigador?') || event.stopImmediatePropagation()"
                                         class="rounded-full border border-[#d77a7a]/40 px-3 py-1 text-xs font-semibold text-[#9c1c1c] hover:bg-[#f9dede]">
                                         Eliminar
