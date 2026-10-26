@@ -111,8 +111,11 @@ new class extends Component {
             'event_year' => ['nullable', 'regex:/^\d{4}$/'],
             'event_month' => ['nullable', 'integer', 'min:1', 'max:12'],
             'event_scope' => ['nullable', 'in:Nacional,Internacional'],
-            'event_url' => ['nullable', 'url:http,https', 'max:300'],
-            'participation_type' => ['required', 'in:Ponente,Asistente,Organizador,Conferencista Magistral,Moderador,Panelista'],
+            'event_url' => ['nullable', 'url:http,https', 'max:255'],
+            'host_institution_id' => ['nullable', 'integer', 'exists:institution,institution_id'],
+            'origin_institution_id' => ['nullable', 'integer', 'exists:institution,institution_id'],
+            // Mismos valores que el CHECK ck_participation_type de researcher_event
+            'participation_type' => ['required', 'in:Ponente,Asistente,Organizador'],
             'selectedSpeakers' => ['array'],
             'selectedSpeakers.*.researcher_id' => ['required', 'integer', 'distinct', 'exists:researcher,researcher_id'],
         ]);

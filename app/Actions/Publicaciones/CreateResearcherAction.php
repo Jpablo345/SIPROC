@@ -44,7 +44,9 @@ class CreateResearcherAction
                     ? trim($data['modal_document'])
                     : null,
                 'name_1' => trim($data['modal_name_1']),
+                'name_2' => !empty($data['modal_name_2']) ? trim($data['modal_name_2']) : null,
                 'last_name_1' => trim($data['modal_last_name_1']),
+                'last_name_2' => !empty($data['modal_last_name_2']) ? trim($data['modal_last_name_2']) : null,
                 'cod_minciencias' => $groupCode,
             ]);
         });

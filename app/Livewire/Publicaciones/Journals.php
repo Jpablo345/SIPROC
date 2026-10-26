@@ -3,6 +3,7 @@
 namespace App\Livewire\Publicaciones;
 
 use App\Models\Journal;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -45,9 +46,17 @@ class Journals extends Component
             $this->authorize('create', Journal::class);
         }
         $this->validate([
-            'journal_issn' => 'required|string|max:20',
-            'journal_name' => 'required|string|max:255',
-            'category' => 'nullable|string|max:100',
+            // Al editar el ISSN no se modifica (es la clave primaria), así que solo se valida unicidad al crear.
+            'journal_issn' => ['required', 'string', 'max:20', Rule::unique('journal', 'journal_issn')->ignore($this->editingId, 'journal_issn')],
+            'journal_name' => ['required', 'string', 'max:255'],
+            'category' => ['nullable', 'string', 'max:10'],
+        ], [
+            'journal_issn.required' => 'El ISSN es obligatorio.',
+            'journal_issn.max' => 'El ISSN no puede superar 20 caracteres.',
+            'journal_issn.unique' => 'Ya existe una revista con ese ISSN.',
+            'journal_name.required' => 'El nombre de la revista es obligatorio.',
+            'journal_name.max' => 'El nombre no puede superar 255 caracteres.',
+            'category.max' => 'La categoría no puede superar 10 caracteres.',
         ]);
 
         $data = [
@@ -74,6 +83,13 @@ class Journals extends Component
     {
         $journal = Journal::findOrFail($issn);
         $this->authorize('delete', $journal);
+
+        // article.journal_issn tiene FK restrict: borrar una revista en uso falla en la BD.
+        if ($journal->articles()->exists()) {
+            session()->flash('status', 'No se puede eliminar: hay artículos registrados en esta revista.');
+            return;
+        }
+
         $journal->delete();
 
         session()->flash('status', 'Revista eliminada.');

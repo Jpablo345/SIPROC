@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\ValidatesPublication;
 use App\Models\Book;
 use App\Models\BookType;
 use App\Models\Institution;
@@ -14,7 +15,7 @@ use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
 new class extends Component {
-    use WithPagination;
+    use WithPagination, ValidatesPublication;
 
     public string $search = '';
     public ?int $editingId = null;
@@ -92,13 +93,24 @@ new class extends Component {
             $this->authorize('create', Publication::class);
         }
         $this->validate(
-            ['url' => ['nullable', 'string', 'max:300', 'url:http,https']],
-            ['url.url' => 'La URL debe ser válida y empezar con http:// o https://.']
+            [
+                ...$this->publicationRules(),
+                'book_isbn' => ['required', 'string', 'max:20', Rule::unique('book', 'book_isbn')->ignore($this->editingId, 'publication_id')],
+                'means_of_dissemination' => ['nullable', 'string', 'max:100'],
+                'editorial' => ['nullable', 'string', 'max:255'],
+                'book_type_id' => ['nullable', 'integer', 'exists:book_type,book_type_id'],
+                ...$this->authorRules(),
+            ],
+            [
+                ...$this->publicationMessages(),
+                'book_isbn.required' => 'El ISBN es obligatorio.',
+                'book_isbn.max' => 'El ISBN no puede superar 20 caracteres.',
+                'book_isbn.unique' => 'Este ISBN ya está registrado en otro libro.',
+                'means_of_dissemination.max' => 'El medio de divulgación no puede superar 100 caracteres.',
+                'editorial.max' => 'La editorial no puede superar 255 caracteres.',
+                'book_type_id.exists' => 'El tipo de libro no es válido.',
+            ]
         );
-        if (trim($this->title) === '' || !$this->book_isbn) {
-            session()->flash('status', 'Completa el titulo y el ISBN.');
-            return;
-        }
 
         $publicationData = [
             'title' => trim($this->title),
@@ -258,6 +270,8 @@ new class extends Component {
                 {{ session('status') }}
             </div>
         @endif
+
+        <x-validation-errors :bag="$errors" class="mt-4" />
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div class="md:col-span-2">

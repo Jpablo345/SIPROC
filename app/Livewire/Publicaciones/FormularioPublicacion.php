@@ -4,6 +4,7 @@ namespace App\Livewire\Publicaciones;
 
 use App\Actions\Publicaciones\CreateResearcherAction;
 use App\Actions\Publicaciones\SavePublicationAction;
+use App\Livewire\Concerns\ValidatesPublication;
 use App\Models\BookType;
 use App\Models\Institution;
 use App\Models\Journal;
@@ -16,6 +17,8 @@ use Livewire\Component;
 
 class FormularioPublicacion extends Component
 {
+    use ValidatesPublication;
+
     public ?int $publicationId = null;
 
     public string $title = '';
@@ -112,8 +115,10 @@ class FormularioPublicacion extends Component
 
         $this->authorResults = Researcher::query()
             ->with('researchGroup')
-            ->where(function ($query) use ($like) {
-                $query->where('researcher_id', 'ilike', $like)
+            ->where(function ($query) use ($like, $term) {
+                // researcher_id es bigint: ilike sobre él falla en PostgreSQL, se compara exacto.
+                $query->when(ctype_digit($term), fn($q) => $q->orWhere('researcher_id', (int) $term))
+                    ->orWhere('document', 'ilike', $like)
                     ->orWhere('name_1', 'ilike', $like)
                     ->orWhere('name_2', 'ilike', $like)
                     ->orWhere('last_name_1', 'ilike', $like)
@@ -174,7 +179,7 @@ class FormularioPublicacion extends Component
     public function agregarAutor(string $researcherId): void
     {
         foreach ($this->selectedAuthors as $author) {
-            if ($author['researcher_id'] === $researcherId) {
+            if ((string) $author['researcher_id'] === $researcherId) {
                 return;
             }
         }
@@ -312,11 +317,8 @@ class FormularioPublicacion extends Component
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
-            'publication_year' => ['nullable', 'regex:/^\d{4}$/'],
-            'scope' => ['nullable', 'in:Nacional,Internacional'],
-            'country_publication' => ['nullable', 'string', 'max:100'],
-            'url' => ['nullable', 'string', 'max:300', 'url:http,https'],
+            ...$this->publicationRules(),
+            ...$this->authorRules(),
             'type_id' => ['required', 'integer', 'exists:publication_type,type_id'],
             'journal_issn' => [
                 Rule::requiredIf(fn() => $this->isArticleType()),
@@ -335,6 +337,7 @@ class FormularioPublicacion extends Component
                 'nullable',
                 'string',
                 'max:20',
+                Rule::unique('book', 'book_isbn')->ignore($this->publicationId, 'publication_id'),
             ],
             'means_of_dissemination' => ['nullable', 'string', 'max:100'],
             'editorial' => ['nullable', 'string', 'max:255'],
@@ -350,9 +353,8 @@ class FormularioPublicacion extends Component
     public function messages(): array
     {
         return [
-            'title.required' => 'El titulo es obligatorio.',
-            'publication_year.regex' => 'El ano debe tener 4 digitos.',
-            'scope.in' => 'El ambito debe ser Nacional o Internacional.',
+            ...$this->publicationMessages(),
+            'book_isbn.unique' => 'Este ISBN ya está registrado en otro libro.',
             'type_id.required' => 'Selecciona el tipo de publicacion.',
             'type_id.exists' => 'El tipo de publicacion no es valido.',
             'journal_issn.required' => 'Selecciona la revista del articulo.',
@@ -361,7 +363,6 @@ class FormularioPublicacion extends Component
             'book_isbn.required' => 'El ISBN es obligatorio para libros.',
             'book_type_id.required' => 'Selecciona el tipo de libro.',
             'book_type_id.exists' => 'El tipo de libro no es valido.',
-            'url.url' => 'La URL debe ser valida y empezar con http.',
         ];
     }
 
