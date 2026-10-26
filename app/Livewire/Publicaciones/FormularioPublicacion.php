@@ -209,6 +209,14 @@ class FormularioPublicacion extends Component
 
     public function crearYSeleccionar(): void
     {
+        $this->authorize('create', Researcher::class);
+        if ($this->modal_create_group) {
+            $this->authorize('create', ResearchGroup::class);
+        }
+        if ($this->modal_create_institution) {
+            $this->authorize('create', Institution::class);
+        }
+
         $data = $this->validate($this->modalRules(), $this->modalMessages());
 
         $newResearcher = app(CreateResearcherAction::class)->execute($data);
@@ -308,7 +316,7 @@ class FormularioPublicacion extends Component
             'publication_year' => ['nullable', 'regex:/^\d{4}$/'],
             'scope' => ['nullable', 'in:Nacional,Internacional'],
             'country_publication' => ['nullable', 'string', 'max:100'],
-            'url' => ['nullable', 'string', 'max:300', 'url'],
+            'url' => ['nullable', 'string', 'max:300', 'url:http,https'],
             'type_id' => ['required', 'integer', 'exists:publication_type,type_id'],
             'journal_issn' => [
                 Rule::requiredIf(fn() => $this->isArticleType()),
@@ -471,7 +479,7 @@ class FormularioPublicacion extends Component
             'modal_institution_type' => ['nullable', 'string', 'max:50'],
             'modal_institution_country' => ['nullable', 'string', 'max:50'],
             'modal_institution_city' => ['nullable', 'string', 'max:50'],
-            'modal_institution_website' => ['nullable', 'string', 'max:255'],
+            'modal_institution_website' => ['nullable', 'string', 'max:255', 'url:http,https'],
         ];
     }
 

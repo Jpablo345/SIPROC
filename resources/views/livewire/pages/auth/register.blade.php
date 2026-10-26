@@ -68,6 +68,23 @@ new #[Layout('layouts.guest')]
             'code.unique' => "Ese código $label ya está registrado.",
         ]);
 
+        // Límite de envíos: 5 registros por IP cada 10 minutos y un código por correo cada minuto.
+        $ipKey = $this->registerIpKey();
+
+        if (RateLimiter::tooManyAttempts($ipKey, 5)) {
+            $this->addError('email', 'Demasiados intentos de registro. Espera ' . ceil(RateLimiter::availableIn($ipKey) / 60) . ' minutos e inténtalo de nuevo.');
+
+            return;
+        }
+
+        $emailKey = $this->resendKey($validated['email']);
+
+        if (RateLimiter::tooManyAttempts($emailKey, 1)) {
+            $this->addError('email', 'Espera ' . RateLimiter::availableIn($emailKey) . ' segundos para pedir otro código.');
+
+            return;
+        }
+
         // Un registro sin verificar no bloquea el correo ni el código: se reemplaza.
         User::whereNull('email_verified_at')
             ->whereNotNull('user_type')
@@ -88,7 +105,8 @@ new #[Layout('layouts.guest')]
             return;
         }
 
-        RateLimiter::hit($this->resendKey($user->id), 60);
+        RateLimiter::hit($emailKey, 60);
+        RateLimiter::hit($ipKey, 600);
 
         $this->pendingUserId = $user->id;
         $this->otp = '';
@@ -151,7 +169,7 @@ new #[Layout('layouts.guest')]
             return;
         }
 
-        $key = $this->resendKey($user->id);
+        $key = $this->resendKey($user->email);
 
         if (RateLimiter::tooManyAttempts($key, 1)) {
             $this->addError('otp', 'Espera ' . RateLimiter::availableIn($key) . ' segundos para pedir otro código.');
@@ -194,9 +212,15 @@ new #[Layout('layouts.guest')]
         return ($user && !$user->email_verified_at) ? $user : null;
     }
 
-    protected function resendKey(int $userId): string
+    // Por correo (no por id): al re-registrarse se crea un usuario nuevo y el límite por id se evadía.
+    protected function resendKey(string $email): string
     {
-        return 'register-otp-resend:' . $userId;
+        return 'register-otp-resend:' . sha1(strtolower($email));
+    }
+
+    protected function registerIpKey(): string
+    {
+        return 'register-ip:' . request()->ip();
     }
 
     protected function otpErrorMessage(ConsumeOneTimePasswordResult $result): string
