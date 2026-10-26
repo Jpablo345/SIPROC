@@ -16,7 +16,6 @@ class Journal extends Model
     protected $primaryKey = 'journal_issn';
     protected $keyType = 'string';
     public $incrementing = false;
-    public $timestamps = false;
 
     protected $fillable = [
         'journal_issn',

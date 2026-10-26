@@ -14,7 +14,6 @@ class Institution extends Model
 
     protected $table = 'institution';
     protected $primaryKey = 'institution_id';
-    public $timestamps = false;
 
     protected $fillable = [
         'institution_name',

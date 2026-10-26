@@ -14,7 +14,6 @@ class PublicationType extends Model
 
     protected $table = 'publication_type';
     protected $primaryKey = 'type_id';
-    public $timestamps = false;
 
     protected $fillable = [
         'type_name',
