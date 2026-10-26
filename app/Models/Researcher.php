@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,9 +54,41 @@ class Researcher extends Model
             ->withPivot('event_part_id', 'presentation_title', 'participation_type');
     }
 
-    // Nombre completo como helper
+    // Nombre completo sin espacios dobles cuando falta el segundo nombre o apellido
     public function getFullNameAttribute(): string
     {
-        return trim("{$this->name_1} {$this->name_2} {$this->last_name_1} {$this->last_name_2}");
+        return implode(' ', array_filter([$this->name_1, $this->name_2, $this->last_name_1, $this->last_name_2]));
+    }
+
+    /**
+     * Búsqueda de los selectores: por id exacto (si es numérico), documento o nombres.
+     */
+    public function scopeSearch(Builder $query, string $term): Builder
+    {
+        $like = '%' . $term . '%';
+
+        return $query->where(function (Builder $inner) use ($term, $like) {
+            // researcher_id es bigint: ilike sobre él falla en PostgreSQL, se compara exacto.
+            $inner->when(ctype_digit($term), fn (Builder $q) => $q->orWhere('researcher_id', (int) $term))
+                ->orWhere('document', 'ilike', $like)
+                ->orWhere('name_1', 'ilike', $like)
+                ->orWhere('name_2', 'ilike', $like)
+                ->orWhere('last_name_1', 'ilike', $like)
+                ->orWhere('last_name_2', 'ilike', $like);
+        });
+    }
+
+    /**
+     * Forma en que los selectores guardan un autor/conferencista elegido.
+     *
+     * @return array{researcher_id: int, name: string, group: ?string}
+     */
+    public function toOption(): array
+    {
+        return [
+            'researcher_id' => $this->researcher_id,
+            'name' => $this->full_name,
+            'group' => $this->researchGroup?->group_name,
+        ];
     }
 }

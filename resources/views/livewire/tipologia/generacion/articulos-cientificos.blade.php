@@ -122,11 +122,7 @@ new class extends Component {
         $publication = Publication::with(['researchers.researchGroup'])->find($publicationId);
         $this->selectedAuthors = $publication?->researchers
             ->sortBy(fn($r) => $r->pivot->author_order ?? 999)
-            ->map(fn(Researcher $r) => [
-                'researcher_id' => $r->researcher_id,
-                'name' => $this->formatResearcherName($r),
-                'group' => $r->researchGroup?->group_name,
-            ])
+            ->map(fn(Researcher $r) => $r->toOption())
             ->values()
             ->toArray() ?? [];
     }
@@ -256,16 +252,6 @@ new class extends Component {
             ->first(['type_id']);
 
         $this->articleTypeId = $type?->type_id;
-    }
-
-    public function formatResearcherName(Researcher $researcher): string
-    {
-        return trim(implode(' ', array_filter([
-            $researcher->name_1,
-            $researcher->name_2,
-            $researcher->last_name_1,
-            $researcher->last_name_2,
-        ])));
     }
 
 
@@ -474,7 +460,7 @@ new class extends Component {
                                 @if($article->publication && $article->publication->researchers->isNotEmpty())
                                     {{ 
                                         $article->publication->researchers
-                                            ->map(fn($author) => $this->formatResearcherName($author))
+                                            ->pluck('full_name')
                                             ->implode(', ') 
                                     }}
                                 @else

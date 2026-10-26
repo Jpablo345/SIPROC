@@ -144,8 +144,8 @@ class AuthorizationTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
 
-        $researcherData = ['modal_name_1' => 'Ana', 'modal_last_name_1' => 'Paz', 'modal_create_group' => true,
-            'modal_group_code' => 'COL999', 'modal_group_name' => 'Grupo X'];
+        $researcherData = ['researcherForm.name_1' => 'Ana', 'researcherForm.last_name_1' => 'Paz', 'researcherForm.create_group' => true,
+            'researcherForm.group_code' => 'COL999', 'researcherForm.group_name' => 'Grupo X'];
 
         foreach ([AutoresSelector::class, ConferencistaSelector::class] as $component) {
             $test = Livewire::test($component);
@@ -170,13 +170,13 @@ class AuthorizationTest extends TestCase
         $this->actingAs(User::factory()->withRole('Estudiante')->create());
 
         Livewire::test(AutoresSelector::class)
-            ->set('modal_name_1', 'Ana')
-            ->set('modal_name_2', 'María')
-            ->set('modal_last_name_1', 'Paz')
-            ->set('modal_last_name_2', 'Gómez')
-            ->set('modal_create_group', true)
-            ->set('modal_group_code', 'COL999')
-            ->set('modal_group_name', 'Grupo X')
+            ->set('researcherForm.name_1', 'Ana')
+            ->set('researcherForm.name_2', 'María')
+            ->set('researcherForm.last_name_1', 'Paz')
+            ->set('researcherForm.last_name_2', 'Gómez')
+            ->set('researcherForm.create_group', true)
+            ->set('researcherForm.group_code', 'COL999')
+            ->set('researcherForm.group_name', 'Grupo X')
             ->call('crearYSeleccionar')
             ->assertHasNoErrors()
             ->assertCount('selectedAuthors', 1);

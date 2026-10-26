@@ -53,7 +53,7 @@
     </div>
 
     {{-- ═══════════════════════════════════════════════════════════════════
-    MODAL PARA CREAR INVESTIGADOR (copiado de AutoresSelector)
+    MODAL PARA CREAR INVESTIGADOR (campos en <x-researcher-form-fields>)
     ═══════════════════════════════════════════════════════════════════ --}}
     @if ($showResearcherModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
@@ -70,154 +70,8 @@
                 </div>
 
                 <div class="mt-4 space-y-4">
-                    {{-- Datos personales --}}
-                    <div class="rounded-lg bg-slate-50 p-4">
-                        <h4 class="mb-3 text-sm font-semibold text-[#9c1c1c]">Datos personales</h4>
-                        <div class="grid gap-3 md:grid-cols-2">
-                            <div>
-                                <x-input-label value="Primer nombre *" class="text-xs font-semibold" />
-                                <x-text-input wire:model="modal_name_1" type="text" class="mt-1 w-full" />
-                                <x-input-error :messages="$errors->get('modal_name_1')" class="mt-1" />
-                            </div>
-                            <div>
-                                <x-input-label value="Segundo nombre" class="text-xs font-semibold" />
-                                <x-text-input wire:model="modal_name_2" type="text" class="mt-1 w-full" />
-                            </div>
-                            <div>
-                                <x-input-label value="Primer apellido *" class="text-xs font-semibold" />
-                                <x-text-input wire:model="modal_last_name_1" type="text" class="mt-1 w-full" />
-                                <x-input-error :messages="$errors->get('modal_last_name_1')" class="mt-1" />
-                            </div>
-                            <div>
-                                <x-input-label value="Segundo apellido" class="text-xs font-semibold" />
-                                <x-text-input wire:model="modal_last_name_2" type="text" class="mt-1 w-full" />
-                            </div>
-                            <div>
-                                <x-input-label value="Documento / Cédula" class="text-xs font-semibold" />
-                                <x-text-input wire:model="modal_document" type="text" class="mt-1 w-full" />
-                                <x-input-error :messages="$errors->get('modal_document')" class="mt-1" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Grupo de investigación --}}
-                    <div class="rounded-lg bg-slate-50 p-4">
-                        <div class="flex items-center justify-between">
-                            <h4 class="text-sm font-semibold text-[#9c1c1c]">Grupo de investigación</h4>
-                            <label class="flex items-center gap-2 text-sm">
-                                <input type="checkbox" wire:model.live="modal_create_group"
-                                    class="rounded border-red-300" />
-                                <span class="text-xs text-slate-600">Crear nuevo grupo</span>
-                            </label>
-                        </div>
-
-                        @if($modal_create_group)
-                            <div class="mt-3 grid gap-3 md:grid-cols-2">
-                                <div>
-                                    <x-input-label value="Código MinCiencias *" class="text-xs font-semibold" />
-                                    <x-text-input wire:model="modal_group_code" type="text" class="mt-1 w-full" />
-                                    <x-input-error :messages="$errors->get('modal_group_code')" class="mt-1" />
-                                </div>
-                                <div>
-                                    <x-input-label value="Nombre del grupo *" class="text-xs font-semibold" />
-                                    <x-text-input wire:model="modal_group_name" type="text" class="mt-1 w-full" />
-                                    <x-input-error :messages="$errors->get('modal_group_name')" class="mt-1" />
-                                </div>
-                                <div>
-                                    <x-input-label value="Clasificación" class="text-xs font-semibold" />
-                                    <x-text-input wire:model="modal_group_classification" type="text" class="mt-1 w-full" />
-                                </div>
-                            </div>
-                        @else
-                            <div class="mt-3">
-                                <x-input-label value="Seleccionar grupo existente *" class="text-xs font-semibold" />
-                                <select wire:model="modal_cod_minciencias" class="mt-1 w-full rounded-md border-red-200">
-                                    <option value="">Seleccionar grupo...</option>
-                                    @foreach($this->groups as $group)
-                                        <option value="{{ $group->cod_minciencias }}">{{ $group->group_name }}</option>
-                                    @endforeach
-                                </select>
-                                <x-input-error :messages="$errors->get('modal_cod_minciencias')" class="mt-1" />
-                            </div>
-                        @endif
-                    </div>
-
-                    {{-- Institución --}}
-                    <div class="rounded-lg bg-slate-50 p-4">
-                        <div class="flex items-center justify-between">
-                            <h4 class="text-sm font-semibold text-[#9c1c1c]">Institución</h4>
-                            <label class="flex items-center gap-2 text-sm">
-                                <input type="checkbox" wire:model.live="modal_create_institution"
-                                    class="rounded border-red-300" />
-                                <span class="text-xs text-slate-600">Crear nueva institución</span>
-                            </label>
-                        </div>
-
-                        @if($modal_create_institution)
-                            <div class="mt-3 grid gap-3 md:grid-cols-2">
-                                <div class="md:col-span-2">
-                                    <x-input-label value="Nombre de la institución *" class="text-xs font-semibold" />
-                                    <x-text-input wire:model="modal_institution_name" type="text" class="mt-1 w-full" />
-                                    <x-input-error :messages="$errors->get('modal_institution_name')" class="mt-1" />
-                                </div>
-                                <div>
-                                    <x-input-label value="Tipo" class="text-xs font-semibold" />
-                                    <select wire:model="modal_institution_type" class="mt-1 w-full rounded-md border-red-200">
-                                        <option value="">Seleccionar...</option>
-                                        <option value="Universidad">Universidad</option>
-                                        <option value="Instituto">Instituto</option>
-                                        <option value="Centro de investigación">Centro de investigación</option>
-                                        <option value="Empresa">Empresa</option>
-                                        <option value="ONG">ONG</option>
-                                        <option value="Gobierno">Gobierno</option>
-                                    </select>
-                                </div>
-
-                                {{-- Campo PAÍS con datalist --}}
-                                <div>
-                                    <x-input-label value="País" class="text-xs font-semibold" />
-
-                                    @php
-                                        $paises = config('paises');
-                                        if ($paises)
-                                            ksort($paises);
-                                    @endphp
-
-                                    <x-text-input wire:model="modal_institution_country" list="lista-paises-conferencista"
-                                        type="text" class="mt-1 w-full" placeholder="Escribe para buscar un país..."
-                                        autocomplete="off" />
-
-                                    <datalist id="lista-paises-conferencista">
-                                        @if($paises)
-                                            @foreach($paises as $nombre => $codigo)
-                                                <option value="{{ $nombre }}"></option>
-                                            @endforeach
-                                        @endif
-                                    </datalist>
-                                </div>
-
-                                <div>
-                                    <x-input-label value="Ciudad" class="text-xs font-semibold" />
-                                    <x-text-input wire:model="modal_institution_city" type="text" class="mt-1 w-full" />
-                                </div>
-                                <div class="md:col-span-2">
-                                    <x-input-label value="Sitio web" class="text-xs font-semibold" />
-                                    <x-text-input wire:model="modal_institution_website" type="url" class="mt-1 w-full" />
-                                </div>
-                            </div>
-                        @else
-                            <div class="mt-3">
-                                <x-input-label value="Seleccionar institución existente" class="text-xs font-semibold" />
-                                <select wire:model="modal_institution_id" class="mt-1 w-full rounded-md border-red-200">
-                                    <option value="">Seleccionar institución...</option>
-                                    @foreach($this->institutions as $institution)
-                                        <option value="{{ $institution->institution_id }}">{{ $institution->institution_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endif
-                    </div>
+                    <x-researcher-form-fields :form="$researcherForm" :groups="$this->groups"
+                        :institutions="$this->institutions" :bag="$errors" id-prefix="conf" />
 
                     <div class="mt-6 flex justify-end gap-2 border-t border-slate-200 pt-4">
                         <button type="button" wire:click="$set('showResearcherModal', false)"
@@ -231,5 +85,6 @@
                     </div>
                 </div>
             </div>
+        </div>
     @endif
     </div>
