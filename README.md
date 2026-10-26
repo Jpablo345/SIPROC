@@ -7,6 +7,15 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Tests (SIPROC)
+
+Los tests corren sobre una base de datos PostgreSQL aparte, `siproc_test`, porque las migraciones usan SQL propio de PostgreSQL (CHECK y triggers). Host, usuario y contraseña se toman del `.env`.
+
+1. Crea la base de datos una sola vez: `createdb -h 127.0.0.1 -U postgres siproc_test`
+2. Ejecuta los tests: `composer test` (o `php artisan test`).
+
+`RefreshDatabase` borra y recrea `siproc_test` en cada test. `tests/TestCase.php` se niega a correr si la base de datos no termina en `_test`, para no tocar nunca la base de desarrollo.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
