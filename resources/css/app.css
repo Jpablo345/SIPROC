@@ -4,16 +4,16 @@
 
 @layer base {
 	:root {
-		--sivis-red: #9c1c1c;
-		--sivis-red-dark: #6f1414;
-		--sivis-cream: #f6efe9;
-		--sivis-rose: #f3d7d7;
-		--sivis-ink: #2b2323;
+		--siproc-red: #9c1c1c;
+		--siproc-red-dark: #6f1414;
+		--siproc-cream: #f6efe9;
+		--siproc-rose: #f3d7d7;
+		--siproc-ink: #2b2323;
 	}
 
 	body {
 		font-family: "Space Grotesk", sans-serif;
-		background: var(--sivis-cream);
-		color: var(--sivis-ink);
+		background: var(--siproc-cream);
+		color: var(--siproc-ink);
 	}
 }

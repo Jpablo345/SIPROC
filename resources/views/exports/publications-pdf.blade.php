@@ -89,7 +89,7 @@
 
 <body>
     <div class="header">
-        SIVIS - Producción Científica
+        SIPROC - Producción Científica
     </div>
     <div class="subtitle">
         Reporte generado el {{ now()->format('d/m/Y \a \l\a\s H:i:s') }} |
@@ -242,7 +242,7 @@
     @endif
 
     <div class="footer">
-        Reporte generado automáticamente por SIVIS - Sistema de Visualización de Investigaciones de Sistemas<br>
+        Reporte generado automáticamente por SIPROC - Sistema de Visualización de Investigaciones de Sistemas<br>
         Universidad Francisco de Paula Santander - Ocaña
     </div>
 </body>

@@ -24,13 +24,13 @@ new class extends Component {
 
 <nav x-data="{ open: false }" class="relative">
     <!-- Mobile Top Bar -->
-    <div class="flex items-center justify-between bg-[var(--sivis-red)] px-4 py-3 text-white lg:hidden">
+    <div class="flex items-center justify-between bg-[var(--siproc-red)] px-4 py-3 text-white lg:hidden">
         <div class="flex items-center gap-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 p-1">
                 <img src="{{ asset('img/logoufps.png') }}" alt="UFPS" class="h-8 w-8 rounded-lg object-contain" />
             </div>
             <div>
-                <div class="text-xs uppercase tracking-[0.3em] text-white/60">SIVIS</div>
+                <div class="text-xs uppercase tracking-[0.3em] text-white/60">SIPROC</div>
                 <div class="text-sm font-semibold">Produccion Cientifica</div>
             </div>
         </div>
@@ -45,7 +45,7 @@ new class extends Component {
     <!-- Mobile Drawer -->
     <div x-show="open" class="fixed inset-0 z-40 lg:hidden" x-cloak>
         <div class="absolute inset-0 bg-black/40" @click="open = false"></div>
-        <div class="relative flex h-full w-72 flex-col bg-[var(--sivis-red)] text-white">
+        <div class="relative flex h-full w-72 flex-col bg-[var(--siproc-red)] text-white">
             <div class="flex items-center justify-between px-5 py-5">
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 p-1">
@@ -53,7 +53,7 @@ new class extends Component {
                             class="h-8 w-8 rounded-lg object-contain" />
                     </div>
                     <div>
-                        <div class="text-xs uppercase tracking-[0.3em] text-white/60">SIVIS</div>
+                        <div class="text-xs uppercase tracking-[0.3em] text-white/60">SIPROC</div>
                         <div class="text-sm font-semibold">Menu principal</div>
                     </div>
                 </div>
@@ -275,14 +275,14 @@ new class extends Component {
 
     <!-- Desktop Sidebar -->
     <aside
-        class="hidden h-screen w-72 flex-col bg-[var(--sivis-red)] text-white lg:sticky lg:top-0 lg:flex lg:shrink-0">
+        class="hidden h-screen w-72 flex-col bg-[var(--siproc-red)] text-white lg:sticky lg:top-0 lg:flex lg:shrink-0">
         <div class="px-6 py-7">
             <div class="flex items-center gap-3">
                 <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 p-2">
                     <img src="{{ asset('img/logoufps.png') }}" alt="UFPS" class="h-8 w-8 rounded-lg object-contain" />
                 </div>
                 <div>
-                    <div class="text-xs uppercase tracking-[0.3em] text-white/60">SIVIS</div>
+                    <div class="text-xs uppercase tracking-[0.3em] text-white/60">SIPROC</div>
                     <div class="text-base font-semibold">Produccion Cientifica</div>
                 </div>
             </div>
