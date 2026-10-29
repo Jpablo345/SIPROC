@@ -18,14 +18,14 @@
 </head>
 
 <body class="antialiased">
-    <div class="min-h-screen bg-[var(--sivis-cream)] text-[var(--sivis-ink)]">
+    <div class="min-h-screen bg-[var(--siproc-cream)] text-[var(--siproc-ink)]">
         <div class="flex min-h-screen">
             <livewire:layout.navigation />
 
             <div class="flex min-h-screen flex-1 flex-col min-w-0">
                 <!-- Page Heading -->
                 @if (isset($header))
-                    <header class="sticky top-0 z-30 border-b border-[#e7cfcf] bg-[var(--sivis-cream)]/80 backdrop-blur">
+                    <header class="sticky top-0 z-30 border-b border-[#e7cfcf] bg-[var(--siproc-cream)]/80 backdrop-blur">
                         <div class="mx-auto w-full max-w-6xl px-6 py-4 lg:px-10">
                             {{ $header }}
                         </div>
@@ -41,7 +41,7 @@
         </div>
     </div>
 
-    <!-- Widget de Accesibilidad SIVIS -->
+    <!-- Widget de Accesibilidad SIPROC -->
     <div x-data="accesibilidad()" x-init="init()">
 
         {{-- Botón flotante --}}
@@ -251,68 +251,68 @@
                     Restablecer todo
                 </button>
 
-                <p class="text-center text-[10px] text-zinc-300 pb-1">SIVIS — UFPSO</p>
+                <p class="text-center text-[10px] text-zinc-300 pb-1">SIPROC — UFPSO</p>
 
             </div>
         </div>
     </div>
 
     <style>
-        .sivis-contraste-invertido {
+        .siproc-contraste-invertido {
             filter: invert(100%) hue-rotate(180deg) !important;
         }
 
-        .sivis-contraste-invertido img {
+        .siproc-contraste-invertido img {
             filter: invert(100%) hue-rotate(180deg) !important;
         }
 
-        .sivis-contraste-oscuro {
+        .siproc-contraste-oscuro {
             background: #000 !important;
             color: #fff !important;
         }
 
-        .sivis-contraste-oscuro * {
+        .siproc-contraste-oscuro * {
             background-color: #000 !important;
             color: #fff !important;
             border-color: #555 !important;
         }
 
-        .sivis-contraste-claro {
+        .siproc-contraste-claro {
             background: #fff !important;
             color: #000 !important;
         }
 
-        .sivis-contraste-claro * {
+        .siproc-contraste-claro * {
             background-color: #fff !important;
             color: #000 !important;
             border-color: #ccc !important;
         }
 
-        .sivis-texto-1 {
+        .siproc-texto-1 {
             zoom: 1.1;
         }
 
-        .sivis-texto-2 {
+        .siproc-texto-2 {
             zoom: 1.25;
         }
 
-        .sivis-texto-3 {
+        .siproc-texto-3 {
             zoom: 1.5;
         }
 
-        .sivis-saturacion-1 {
+        .siproc-saturacion-1 {
             filter: saturate(30%) !important;
         }
 
-        .sivis-saturacion-2 {
+        .siproc-saturacion-2 {
             filter: saturate(0%) !important;
         }
 
-        .sivis-saturacion-3 {
+        .siproc-saturacion-3 {
             filter: saturate(200%) !important;
         }
 
-        .sivis-enlaces a {
+        .siproc-enlaces a {
             text-decoration: underline !important;
             font-weight: bold !important;
             color: #1d4ed8 !important;
@@ -321,20 +321,20 @@
             border-radius: 2px !important;
         }
 
-        .sivis-espaciado * {
+        .siproc-espaciado * {
             letter-spacing: 0.1em !important;
             word-spacing: 0.2em !important;
         }
 
-        .sivis-dislexia {
+        .siproc-dislexia {
             font-family: 'Comic Sans MS', cursive !important;
         }
 
-        .sivis-line-height {
+        .siproc-line-height {
             line-height: 2 !important;
         }
 
-        .sivis-sin-imagenes img {
+        .siproc-sin-imagenes img {
             visibility: hidden !important;
         }
     </style>
@@ -353,7 +353,7 @@
                 imagenes: false,
 
                 init() {
-                    const saved = JSON.parse(localStorage.getItem('sivis-accesibilidad') || '{}');
+                    const saved = JSON.parse(localStorage.getItem('siproc-accesibilidad') || '{}');
                     this.contraste = saved.contraste ?? null;
                     this.texto = saved.texto ?? 0;
                     this.saturacion = saved.saturacion ?? 0;
@@ -370,7 +370,7 @@
                 },
 
                 guardar() {
-                    localStorage.setItem('sivis-accesibilidad', JSON.stringify({
+                    localStorage.setItem('siproc-accesibilidad', JSON.stringify({
                         contraste: this.contraste,
                         texto: this.texto,
                         saturacion: this.saturacion,
@@ -383,20 +383,20 @@
                 },
 
                 aplicarTodo() {
-                    ['sivis-contraste-invertido', 'sivis-contraste-oscuro', 'sivis-contraste-claro',
-                        'sivis-texto-1', 'sivis-texto-2', 'sivis-texto-3',
-                        'sivis-saturacion-1', 'sivis-saturacion-2', 'sivis-saturacion-3',
-                        'sivis-enlaces', 'sivis-espaciado', 'sivis-dislexia',
-                        'sivis-line-height', 'sivis-sin-imagenes'
+                    ['siproc-contraste-invertido', 'siproc-contraste-oscuro', 'siproc-contraste-claro',
+                        'siproc-texto-1', 'siproc-texto-2', 'siproc-texto-3',
+                        'siproc-saturacion-1', 'siproc-saturacion-2', 'siproc-saturacion-3',
+                        'siproc-enlaces', 'siproc-espaciado', 'siproc-dislexia',
+                        'siproc-line-height', 'siproc-sin-imagenes'
                     ].forEach(c => document.body.classList.remove(c));
-                    if (this.contraste) document.body.classList.add('sivis-contraste-' + this.contraste);
-                    if (this.texto) document.body.classList.add('sivis-texto-' + this.texto);
-                    if (this.saturacion) document.body.classList.add('sivis-saturacion-' + this.saturacion);
-                    if (this.enlaces) document.body.classList.add('sivis-enlaces');
-                    if (this.espaciado) document.body.classList.add('sivis-espaciado');
-                    if (this.dislexia) document.body.classList.add('sivis-dislexia');
-                    if (this.lineHeight) document.body.classList.add('sivis-line-height');
-                    if (this.imagenes) document.body.classList.add('sivis-sin-imagenes');
+                    if (this.contraste) document.body.classList.add('siproc-contraste-' + this.contraste);
+                    if (this.texto) document.body.classList.add('siproc-texto-' + this.texto);
+                    if (this.saturacion) document.body.classList.add('siproc-saturacion-' + this.saturacion);
+                    if (this.enlaces) document.body.classList.add('siproc-enlaces');
+                    if (this.espaciado) document.body.classList.add('siproc-espaciado');
+                    if (this.dislexia) document.body.classList.add('siproc-dislexia');
+                    if (this.lineHeight) document.body.classList.add('siproc-line-height');
+                    if (this.imagenes) document.body.classList.add('siproc-sin-imagenes');
                 },
 
                 setContraste(tipo) {
@@ -422,7 +422,7 @@
                     this.enlaces = false; this.espaciado = false; this.dislexia = false;
                     this.lineHeight = false; this.imagenes = false;
                     this.aplicarTodo();
-                    localStorage.removeItem('sivis-accesibilidad');
+                    localStorage.removeItem('siproc-accesibilidad');
                 }
             }
         }

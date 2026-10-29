@@ -35,7 +35,7 @@
 
             <div class="bg-red-600 flex-grow flex items-center justify-end px-10">
                 <span class="text-white font-black text-6xl tracking-[0.2em] select-none">
-                    SIVIS
+                    SIPROC
                 </span>
             </div>
         </div>
