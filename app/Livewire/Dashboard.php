@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Models\Book;
 use App\Models\Event;
 use App\Models\Publication;
+use App\Models\PublicationType;
 use App\Models\ResearchGroup;
 use App\Models\Researcher;
 use Illuminate\Support\Facades\DB;
@@ -22,12 +23,30 @@ class Dashboard extends Component
 
     public array $recentPublications = [];
     public array $productionByGroup  = [];
+    public array $productionByType   = [];
 
     public function mount(): void
     {
         $this->loadStats();
         $this->loadRecentPublications();
         $this->loadProductionByGroup();
+        $this->loadProductionByType();
+    }
+
+    private function loadProductionByType(): void
+    {
+        // Todos los tipos, incluidos los configurables y los que aún no tienen publicaciones.
+        $this->productionByType = PublicationType::query()
+            ->withCount('publications')
+            ->orderByDesc('publications_count')
+            ->orderBy('type_name')
+            ->get()
+            ->map(fn (PublicationType $type) => [
+                'name'      => $type->type_name,
+                'count'     => $type->publications_count,
+                'is_system' => $type->is_system,
+            ])
+            ->toArray();
     }
 
     private function loadStats(): void

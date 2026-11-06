@@ -18,6 +18,7 @@ class RoleSeeder extends Seeder
             'editar-propios', 'eliminar-propios',
             'editar-todos', 'eliminar-todos',
             'gestionar-usuarios',
+            'gestionar-tipos',
         ];
 
         foreach ($permisos as $p) {
@@ -28,7 +29,7 @@ class RoleSeeder extends Seeder
             ->syncPermissions(['consultar', 'agregar', 'editar-propios']);
 
         Role::firstOrCreate(['name' => 'Docente', 'guard_name' => 'web'])
-            ->syncPermissions(['consultar', 'agregar', 'editar-propios', 'eliminar-propios']);
+            ->syncPermissions(['consultar', 'agregar', 'editar-propios', 'eliminar-propios', 'gestionar-tipos']);
 
         Role::firstOrCreate(['name' => 'Administrador', 'guard_name' => 'web'])
             ->syncPermissions(Permission::all());

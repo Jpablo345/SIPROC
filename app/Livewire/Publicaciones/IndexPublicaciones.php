@@ -140,7 +140,9 @@ class IndexPublicaciones extends Component
         $this->authorize('viewAny', Publication::class);
 
         $publications = $this->getPublicationsQueryProperty()->get();
-        return Excel::download(new PublicationsExport($publications), 'publicaciones_filtradas.xlsx');
+        $singleType = $this->filterType ? PublicationType::with('fields')->find((int) $this->filterType) : null;
+
+        return Excel::download(new PublicationsExport($publications, $singleType), 'publicaciones_filtradas.xlsx');
     }
 
     // Exportación a PDF

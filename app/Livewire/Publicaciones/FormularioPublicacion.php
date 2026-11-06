@@ -3,6 +3,7 @@
 namespace App\Livewire\Publicaciones;
 
 use App\Actions\Publicaciones\SavePublicationAction;
+use App\Livewire\Concerns\HandlesDynamicFields;
 use App\Livewire\Concerns\ValidatesPublication;
 use App\Livewire\Forms\ResearcherForm;
 use App\Models\BookType;
@@ -17,7 +18,7 @@ use Livewire\Component;
 
 class FormularioPublicacion extends Component
 {
-    use ValidatesPublication;
+    use ValidatesPublication, HandlesDynamicFields;
 
     public ?int $publicationId = null;
 
@@ -61,6 +62,8 @@ class FormularioPublicacion extends Component
 
     public function updatedTypeId(): void
     {
+        $this->resetExtra();
+
         if ($this->isArticleType()) {
             $this->resetBookFields();
             return;
@@ -193,7 +196,11 @@ class FormularioPublicacion extends Component
             $this->authorize('create', Publication::class);
         }
 
-        $data = $this->validate($this->rules(), $this->messages());
+        $data = $this->validate(
+            $this->rules(),
+            $this->messages(),
+            $this->dynamicValidation($this->publicationId)['attributes']
+        );
 
         app(SavePublicationAction::class)->execute(
             publicationData: [
@@ -218,6 +225,9 @@ class FormularioPublicacion extends Component
             publicationId: $this->publicationId,
             isArticle: $this->isArticleType(),
             isBook: $this->isBookType(),
+            extraAttributes: $this->extraForStorage(
+                $this->publicationId ? Publication::find($this->publicationId)?->extra_attributes : null
+            ),
         );
 
         $this->resetForm();
@@ -236,6 +246,7 @@ class FormularioPublicacion extends Component
         $this->country_publication = $publication->country_publication;
         $this->url = $publication->url;
         $this->type_id = $publication->type_id;
+        $this->resetExtra($publication->extra_attributes ?? []);
 
         if ($publication->article) {
             $this->journal_issn = $publication->article->journal_issn;
@@ -294,6 +305,7 @@ class FormularioPublicacion extends Component
                 'integer',
                 'exists:book_type,book_type_id',
             ],
+            ...$this->dynamicValidation($this->publicationId)['rules'],
         ];
     }
 
@@ -310,6 +322,7 @@ class FormularioPublicacion extends Component
             'book_isbn.required' => 'El ISBN es obligatorio para libros.',
             'book_type_id.required' => 'Selecciona el tipo de libro.',
             'book_type_id.exists' => 'El tipo de libro no es valido.',
+            ...$this->dynamicValidation($this->publicationId)['messages'],
         ];
     }
 
@@ -375,6 +388,7 @@ class FormularioPublicacion extends Component
         $this->authorSearch = '';
         $this->authorResults = [];
         $this->selectedAuthors = [];
+        $this->extra = [];
         $this->resetValidation();
     }
 }
