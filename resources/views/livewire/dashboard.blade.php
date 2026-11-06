@@ -148,6 +148,30 @@
             </div>
 
         </section>
+
+        <section class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
+            <h3 class="text-lg font-semibold text-[#2b2323]">Produccion por tipo</h3>
+
+            <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                @forelse ($productionByType as $type)
+                    <div class="flex items-center justify-between rounded-xl border border-[#f0dede] bg-white px-4 py-3">
+                        <span class="truncate text-sm font-semibold text-[#2b2323]">
+                            {{ $type['name'] }}
+                            @unless ($type['is_system'])
+                                <span class="ml-1 text-[10px] font-normal uppercase tracking-wider text-slate-400">configurable</span>
+                            @endunless
+                        </span>
+                        <span class="ml-3 shrink-0 rounded-full bg-[#f2d3d3] px-2 py-0.5 text-xs font-semibold text-[#7a1515]">
+                            {{ $type['count'] }}
+                        </span>
+                    </div>
+                @empty
+                    <div class="rounded-xl border border-dashed border-[#f0dede] px-4 py-6 text-center text-sm text-slate-500 sm:col-span-2 lg:col-span-4">
+                        No hay tipos de publicación registrados.
+                    </div>
+                @endforelse
+            </div>
+        </section>
     </div>
 </div>
 

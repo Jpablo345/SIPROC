@@ -163,6 +163,18 @@
         </div>
     @endif
 
+    @if ($this->dynamicFields->isNotEmpty())
+        <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
+            <h4 class="text-sm font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">Datos de {{ $this->dynamicTypeName }}</h4>
+
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
+                @foreach ($this->dynamicFields as $field)
+                    <x-dynamic-field :field="$field" :bag="$errors" id-prefix="pubextra" wire:key="pub-field-{{ $field->field_id }}" />
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
