@@ -164,7 +164,7 @@
                         @endif
                         @if($filterType)
                             @php
-                                $typeName = $this->types->firstWhere('publication_type_id', (int)$filterType)?->type_name ?? $filterType;
+                                $typeName = $this->types->firstWhere('type_id', (int)$filterType)?->type_name ?? $filterType;
                             @endphp
                             <span class="rounded-full bg-[#fff7f7] px-3 py-1 border border-[#f0dede]">
                                 Tipo: {{ $typeName }}
@@ -172,7 +172,7 @@
                         @endif
                         @if($filterGroup)
                             @php
-                                $groupName = $this->groups->firstWhere('research_group_id', (int)$filterGroup)?->group_name ?? $filterGroup;
+                                $groupName = $this->groups->firstWhere('cod_minciencias', $filterGroup)?->group_name ?? $filterGroup;
                             @endphp
                             <span class="rounded-full bg-[#fff7f7] px-3 py-1 border border-[#f0dede]">
                                 Grupo: {{ $groupName }}
@@ -209,6 +209,7 @@
                             <th class="px-4 py-3">Tipo libro</th>
                             <th class="px-4 py-3">Editorial</th>
                             <th class="px-4 py-3">Medio difusión</th>
+                            <th class="px-4 py-3">Detalles</th>
                             <th class="px-4 py-3 text-right">Acciones</th>
                         </tr>
                     </thead>
@@ -248,6 +249,7 @@
                                 <td class="px-4 py-3 text-slate-600">{{ $isBook ? ($publication->book->bookType?->type_name ?? '—') : '—' }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $isBook ? ($publication->book->editorial ?? '—') : '—' }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $isBook ? ($publication->book->means_of_dissemination ?? '—') : '—' }}</td>
+                                <td class="px-4 py-3 text-slate-600 min-w-[16rem]"><x-extra-details :publication="$publication" /></td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex justify-end gap-2">
                                         
@@ -268,7 +270,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="18" class="px-4 py-6 text-center text-sm text-slate-500">
+                                <td colspan="19" class="px-4 py-6 text-center text-sm text-slate-500">
                                     No hay publicaciones registradas todavía.
                                 </td>
                             </tr>

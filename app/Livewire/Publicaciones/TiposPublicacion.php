@@ -3,7 +3,8 @@
 namespace App\Livewire\Publicaciones;
 
 use App\Models\PublicationType;
-use Illuminate\Validation\Rule;
+use Closure;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -34,7 +35,7 @@ class TiposPublicacion extends Component
         $this->resetForm();
     }
 
-    public function save(): void
+    public function save()
     {
         if ($this->editingId) {
             $this->authorize('update', PublicationType::findOrFail($this->editingId));
@@ -43,24 +44,26 @@ class TiposPublicacion extends Component
         }
         $this->type_name = trim($this->type_name);
         $this->validate([
-            'type_name' => ['required', 'string', 'max:60', Rule::unique('publication_type', 'type_name')->ignore($this->editingId, 'type_id')],
+            'type_name' => ['required', 'string', 'max:60', $this->uniqueNameRule()],
         ], [
             'type_name.required' => 'Completa el nombre del tipo.',
             'type_name.max' => 'El nombre no puede superar 60 caracteres.',
-            'type_name.unique' => 'Ya existe un tipo con ese nombre.',
         ]);
 
-        $data = ['type_name' => trim($this->type_name)];
+        $data = ['type_name' => $this->type_name];
 
         if ($this->editingId) {
             PublicationType::where('type_id', $this->editingId)->update($data);
             session()->flash('status', 'Tipo actualizado.');
-        } else {
-            PublicationType::create($data);
-            session()->flash('status', 'Tipo creado.');
+            $this->resetForm();
+            return null;
         }
 
-        $this->resetForm();
+        $type = PublicationType::create($data);
+        session()->flash('status', 'Tipo creado. Ahora define los campos que pedirá su formulario.');
+
+        // Al crear un tipo se pasa directo a configurar sus campos.
+        return $this->redirectRoute('publicaciones.tipos.campos', ['type' => $type->type_id], navigate: true);
     }
 
     public function delete(int $typeId): void
@@ -85,17 +88,43 @@ class TiposPublicacion extends Component
         $term = trim($this->search);
 
         return PublicationType::query()
+            ->withCount(['fields', 'publications'])
             ->when($term !== '', function ($query) use ($term) {
                 $like = '%' . $term . '%';
                 $query->where('type_name', 'ilike', $like);
             })
+            ->orderByDesc('is_system')
             ->orderBy('type_name')
             ->paginate(10);
+    }
+
+    public function getCanCreateProperty(): bool
+    {
+        return Gate::allows('create', PublicationType::class);
     }
 
     public function render()
     {
         return view('publicaciones.tipos')->layout('layouts.app');
+    }
+
+    /**
+     * El nombre no puede repetirse sin importar mayúsculas ni tildes ("Software" = "software" = "Sóftware").
+     */
+    private function uniqueNameRule(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) {
+            $normalized = PublicationType::normalizeName((string) $value);
+
+            $duplicate = PublicationType::query()
+                ->when($this->editingId, fn ($q) => $q->where('type_id', '!=', $this->editingId))
+                ->get(['type_id', 'type_name'])
+                ->contains(fn (PublicationType $type) => PublicationType::normalizeName($type->type_name) === $normalized);
+
+            if ($duplicate) {
+                $fail('Ya existe un tipo con ese nombre.');
+            }
+        };
     }
 
     private function resetForm(): void

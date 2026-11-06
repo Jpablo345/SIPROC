@@ -24,7 +24,45 @@ class Publication extends Model
         'country_publication',
         'url',
         'type_id',
+        'extra_attributes',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'extra_attributes' => 'array',
+        ];
+    }
+
+    /**
+     * Campos dinámicos con valor, en el orden del tipo: [['label' => ..., 'value' => ...], ...].
+     * Incluye campos desactivados que conservan valor. Requiere cargar type.fields.
+     */
+    public function getExtraDetailsAttribute(): array
+    {
+        $values = $this->extra_attributes ?? [];
+
+        if ($values === [] || ! $this->type) {
+            return [];
+        }
+
+        return $this->type->fields
+            ->map(fn (PublicationTypeField $field) => [
+                'key' => $field->key,
+                'label' => $field->label,
+                'value' => $field->display($values[$field->key] ?? null),
+            ])
+            ->filter(fn (array $detail) => $detail['value'] !== null)
+            ->values()
+            ->all();
+    }
+
+    public function getExtraDetailsTextAttribute(): string
+    {
+        return collect($this->extra_details)
+            ->map(fn (array $detail) => "{$detail['label']}: {$detail['value']}")
+            ->implode("\n");
+    }
 
     public function type(): BelongsTo
     {

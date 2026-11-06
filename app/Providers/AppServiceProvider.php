@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Policies\OwnedRecordPolicy;
+use App\Policies\PublicationTypePolicy;
 use App\Models\{
     Publication,
     Event,
@@ -42,11 +43,12 @@ class AppServiceProvider extends ServiceProvider
             ResearchGroup::class,
             Institution::class,
             Journal::class,
-            PublicationType::class,
             BookType::class
         ] as $model) {
             Gate::policy($model, OwnedRecordPolicy::class);
         }
+
+        Gate::policy(PublicationType::class, PublicationTypePolicy::class);
 
         on('exception', function ($target, $e, $stopPropagation) {
             if ($e instanceof AuthorizationException && $target instanceof Component) {

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Publicaciones\IndexPublicaciones;
 use App\Livewire\Publicaciones\TiposPublicacion;
+use App\Livewire\Publicaciones\ConfigurarCamposTipo;
 use App\Livewire\Publicaciones\Journals;
 use App\Livewire\Publicaciones\TiposLibro;
 use App\Http\Controllers\GoogleAuthController;
@@ -37,6 +38,7 @@ Route::middleware(['auth', 'verified', 'can:consultar'])->group(function () {
     Route::prefix('publicaciones')->name('publicaciones.')->group(function () {
         Route::get('/', IndexPublicaciones::class)->name('index');
         Route::get('tipos', TiposPublicacion::class)->name('tipos');
+        Route::get('tipos/{type}/campos', ConfigurarCamposTipo::class)->name('tipos.campos');
         Route::get('revistas', Journals::class)->name('journals');
         Route::get('tipos-libro', TiposLibro::class)->name('tipos-libro');
     });

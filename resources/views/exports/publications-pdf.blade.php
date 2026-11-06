@@ -95,7 +95,8 @@
         Reporte generado el {{ now()->format('d/m/Y \a \l\a\s H:i:s') }} |
         Total de publicaciones: {{ $publications->count() }} |
         Artículos: {{ $publications->filter(fn($p) => $p->article)->count() }} |
-        Libros: {{ $publications->filter(fn($p) => $p->book)->count() }}
+        Libros: {{ $publications->filter(fn($p) => $p->book)->count() }} |
+        Tipos configurables: {{ $publications->filter(fn($p) => ! $p->article && ! $p->book && $p->type && ! $p->type->is_system)->count() }}
     </div>
 
     {{-- ═══════════════════════════════════════════════════════════════════
@@ -104,6 +105,7 @@
     @php
         $articles = $publications->filter(fn($p) => $p->article !== null);
         $books = $publications->filter(fn($p) => $p->book !== null);
+        $configurables = $publications->filter(fn($p) => $p->article === null && $p->book === null && $p->type && ! $p->type->is_system)->values();
     @endphp
 
     @if($articles->count() > 0)
@@ -228,6 +230,61 @@
                             <td>{{ Str::limit($authorsList ?: '—', 45) }}</td>
                             <td>{{ $publication->country_publication ?? '—' }}</td>
                             <td>{{ Str::limit($groups ?: '—', 25) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════════════════════════════
+    TABLA DE TIPOS CONFIGURABLES (campos dinámicos en "Detalles")
+    ═══════════════════════════════════════════════════════════════════ --}}
+    @if($configurables->count() > 0)
+        <div class="section-title">TIPOS CONFIGURABLES</div>
+        <div class="section-stats">Total: {{ $configurables->count() }} publicaciones</div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 4%">#</th>
+                        <th style="width: 24%">Título</th>
+                        <th style="width: 10%">Tipo</th>
+                        <th style="width: 6%">Año</th>
+                        <th style="width: 8%">Ámbito</th>
+                        <th style="width: 16%">Autores</th>
+                        <th style="width: 10%">Grupo Inv.</th>
+                        <th style="width: 22%">Detalles</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($configurables as $index => $publication)
+                        @php
+                            $authors = $publication->researchers->sortBy(fn($r) => $r->pivot->author_order ?? 999);
+                            $authorsList = $authors->pluck('full_name')->filter()->implode(', ');
+                            $groups = $authors->map(fn($r) => $r->researchGroup?->group_name)->filter()->unique()->implode(', ');
+                        @endphp
+                        <tr>
+                            <td style="text-align: center">{{ $index + 1 }}</td>
+                            <td>
+                                <strong>{{ Str::limit($publication->title, 50) }}</strong>
+                                @if($publication->url)
+                                    <div class="extra-info">🔗 {{ Str::limit($publication->url, 35) }}</div>
+                                @endif
+                            </td>
+                            <td>{{ $publication->type->type_name }}</td>
+                            <td style="text-align: center">{{ $publication->publication_year ?? '—' }}</td>
+                            <td style="text-align: center">{{ $publication->scope ?? '—' }}</td>
+                            <td>{{ Str::limit($authorsList ?: '—', 45) }}</td>
+                            <td>{{ Str::limit($groups ?: '—', 25) }}</td>
+                            <td>
+                                @forelse($publication->extra_details as $detail)
+                                    <div><strong>{{ $detail['label'] }}:</strong> {{ $detail['value'] }}</div>
+                                @empty
+                                    —
+                                @endforelse
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
