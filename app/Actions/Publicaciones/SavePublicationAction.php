@@ -18,7 +18,11 @@ class SavePublicationAction
         ?int $publicationId,
         bool $isArticle,
         bool $isBook,
+        ?array $extraAttributes = null,
     ): void {
+        // Los campos dinámicos solo aplican a tipos configurables; Articulo y Libro usan sus tablas.
+        $publicationData['extra_attributes'] = ($isArticle || $isBook) ? null : $extraAttributes;
+
         DB::transaction(function () use (
             $publicationData,
             $articleData,
@@ -29,7 +33,8 @@ class SavePublicationAction
             $isBook,
         ): void {
             if ($publicationId) {
-                Publication::where('publication_id', $publicationId)->update($publicationData);
+                // update() del modelo (no del query builder) para aplicar el cast de extra_attributes.
+                Publication::findOrFail($publicationId)->update($publicationData);
             } else {
                 $publicationId = Publication::create($publicationData)->publication_id;
             }

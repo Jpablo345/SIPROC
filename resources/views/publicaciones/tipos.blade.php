@@ -7,6 +7,16 @@
     </div>
 
     <div class="mt-6 space-y-6">
+        @if (! $this->canCreate && ! $editingId)
+            @if (session('status'))
+                <div class="rounded-xl bg-[#f7e2d2] px-4 py-3 text-xs font-semibold text-[#7a1515]">
+                    {{ session('status') }}
+                </div>
+            @endif
+            <div class="rounded-xl border border-[#f0dede] bg-white/80 px-4 py-3 text-sm text-slate-600">
+                Solo docentes y administradores pueden crear tipos de publicación.
+            </div>
+        @else
         <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -14,7 +24,7 @@
                         {{ $editingId ? 'Editar tipo' : 'Nuevo tipo' }}
                     </h3>
                     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
-                        Clasifica las publicaciones (Articulo, Libro, etc.)
+                        {{ $editingId ? 'Cambia el nombre del tipo' : 'Al crearlo podrás definir los campos de su formulario' }}
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-2">
@@ -43,6 +53,7 @@
                 <x-input-error :messages="$errors->get('type_name')" class="mt-2" />
             </div>
         </div>
+        @endif
 
         <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -60,30 +71,50 @@
                     <thead class="bg-[#fff7f7] text-left text-xs font-semibold uppercase tracking-[0.2em] text-[#7a1515]">
                         <tr>
                             <th class="px-4 py-3">Nombre</th>
+                            <th class="px-4 py-3">Campos propios</th>
+                            <th class="px-4 py-3">Publicaciones</th>
                             <th class="px-4 py-3 text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#f0dede] bg-white">
                         @forelse ($this->types as $type)
                             <tr wire:key="type-{{ $type->type_id }}" class="hover:bg-[#fff7f7]">
-                                <td class="px-4 py-3 font-semibold text-[#2b2323]">{{ $type->type_name }}</td>
+                                <td class="px-4 py-3 font-semibold text-[#2b2323]">
+                                    {{ $type->type_name }}
+                                    @if ($type->is_system)
+                                        <span class="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Sistema</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-slate-600">{{ $type->is_system ? 'Fijos' : $type->fields_count }}</td>
+                                <td class="px-4 py-3 text-slate-600">{{ $type->publications_count }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex justify-end gap-2">
-                                        <button type="button" wire:click="edit({{ $type->type_id }})"
-                                            class="rounded-full border border-[#9c1c1c]/30 px-3 py-1 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
-                                            Editar
-                                        </button>
-                                        <button type="button" wire:click="delete({{ $type->type_id }})"
-                                            onclick="confirm('Seguro que deseas eliminar este tipo?') || event.stopImmediatePropagation()"
-                                            class="rounded-full border border-[#d77a7a]/40 px-3 py-1 text-xs font-semibold text-[#9c1c1c] hover:bg-[#f9dede]">
-                                            Eliminar
-                                        </button>
+                                        @can('update', $type)
+                                            <a href="{{ route('publicaciones.tipos.campos', $type->type_id) }}" wire:navigate
+                                                class="rounded-full bg-[#9c1c1c] px-3 py-1 text-xs font-semibold text-white hover:bg-[#7a1515]">
+                                                Campos
+                                            </a>
+                                            <button type="button" wire:click="edit({{ $type->type_id }})"
+                                                class="rounded-full border border-[#9c1c1c]/30 px-3 py-1 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                                                Editar
+                                            </button>
+                                        @endcan
+                                        @can('delete', $type)
+                                            <button type="button" wire:click="delete({{ $type->type_id }})"
+                                                onclick="confirm('Seguro que deseas eliminar este tipo?') || event.stopImmediatePropagation()"
+                                                class="rounded-full border border-[#d77a7a]/40 px-3 py-1 text-xs font-semibold text-[#9c1c1c] hover:bg-[#f9dede]">
+                                                Eliminar
+                                            </button>
+                                        @endcan
+                                        @if ($type->is_system)
+                                            <span class="text-xs text-slate-400">Tipo del sistema</span>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="2" class="px-4 py-6 text-center text-sm text-slate-500">
+                                <td colspan="4" class="px-4 py-6 text-center text-sm text-slate-500">
                                     No hay tipos registrados todavia.
                                 </td>
                             </tr>
