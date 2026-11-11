@@ -1,6 +1,6 @@
 @php
-    $label = 'text-xs font-semibold uppercase tracking-[0.2em] text-slate-600';
-    $select = 'mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600';
+    $label = 'form-label';
+    $select = 'mt-2 block w-full field';
     $fields = $this->type->fields;
     $type = $form->field_type;
 @endphp
@@ -8,42 +8,38 @@
 <div>
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-[#9c1c1c]">Tipos de publicacion</p>
-            <h2 class="text-2xl font-semibold text-[#2b2323]">Campos de "{{ $this->type->type_name }}"</h2>
+            <p class="page-eyebrow">Tipos de publicación</p>
+            <h2 class="page-title">Campos de "{{ $this->type->type_name }}"</h2>
         </div>
         <a href="{{ route('publicaciones.tipos') }}" wire:navigate
-            class="rounded-full border border-[#9c1c1c]/30 px-4 py-2 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+            class="btn btn-outline">
             ← Volver a tipos
         </a>
     </div>
 
     <div class="mt-6 space-y-6">
-        @if (session('status'))
-            <div class="rounded-xl bg-[#f7e2d2] px-4 py-3 text-xs font-semibold text-[#7a1515]">
-                {{ session('status') }}
-            </div>
-        @endif
+        <x-flash-status />
 
         {{-- Lista de campos --}}
-        <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
+        <div class="card">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h3 class="text-lg font-semibold text-[#2b2323]">Campos del formulario</h3>
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
+                    <h3 class="section-title">Campos del formulario</h3>
+                    <p class="eyebrow">
                         {{ $fields->count() }} de {{ \App\Models\PublicationTypeField::MAX_PER_TYPE }} campos
                     </p>
                 </div>
                 @if (! $showForm && $fields->count() < \App\Models\PublicationTypeField::MAX_PER_TYPE)
                     <button type="button" wire:click="newField"
-                        class="rounded-full bg-[#9c1c1c] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#7a1515]">
+                        class="btn btn-primary">
                         + Agregar campo
                     </button>
                 @endif
             </div>
 
-            <div class="mt-6 overflow-x-auto rounded-2xl border border-[#f0dede]">
-                <table class="min-w-full divide-y divide-[#f0dede] text-sm">
-                    <thead class="bg-[#fff7f7] text-left text-xs font-semibold uppercase tracking-[0.2em] text-[#7a1515]">
+            <div class="mt-6 table-wrap" wire:loading.delay.class="opacity-50">
+                <table class="data-table">
+                    <thead class="table-head">
                         <tr>
                             <th class="px-4 py-3">Orden</th>
                             <th class="px-4 py-3">Etiqueta</th>
@@ -54,19 +50,19 @@
                             <th class="px-4 py-3 text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[#f0dede] bg-white">
+                    <tbody class="table-body">
                         @forelse ($fields as $field)
-                            <tr wire:key="field-{{ $field->field_id }}" class="{{ $field->active ? 'hover:bg-[#fff7f7]' : 'bg-slate-50 text-slate-400' }}">
+                            <tr wire:key="field-{{ $field->field_id }}" class="{{ $field->active ? 'hover:bg-siproc-blush' : 'bg-slate-50 text-slate-400' }}">
                                 <td class="px-4 py-3">
                                     <div class="flex gap-1">
                                         <button type="button" wire:click="move({{ $field->field_id }}, 'up')" @disabled($loop->first)
-                                            class="rounded border border-[#f0dede] px-2 text-xs disabled:opacity-30" title="Subir">↑</button>
+                                            class="rounded border border-siproc-line px-2 text-xs disabled:opacity-30" title="Subir">↑</button>
                                         <button type="button" wire:click="move({{ $field->field_id }}, 'down')" @disabled($loop->last)
-                                            class="rounded border border-[#f0dede] px-2 text-xs disabled:opacity-30" title="Bajar">↓</button>
+                                            class="rounded border border-siproc-line px-2 text-xs disabled:opacity-30" title="Bajar">↓</button>
                                     </div>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <div class="font-semibold {{ $field->active ? 'text-[#2b2323]' : '' }}">{{ $field->label }}</div>
+                                    <div class="font-semibold {{ $field->active ? 'text-siproc-ink' : '' }}">{{ $field->label }}</div>
                                     @if ($field->help_text)
                                         <div class="text-xs text-slate-500">{{ $field->help_text }}</div>
                                     @endif
@@ -82,16 +78,15 @@
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex justify-end gap-2 whitespace-nowrap">
                                         <button type="button" wire:click="editField({{ $field->field_id }})"
-                                            class="rounded-full border border-[#9c1c1c]/30 px-3 py-1 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                                            class="btn btn-sm btn-outline">
                                             Editar
                                         </button>
                                         <button type="button" wire:click="toggleActive({{ $field->field_id }})"
-                                            class="rounded-full border border-[#9c1c1c]/30 px-3 py-1 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                                            class="btn btn-sm btn-outline">
                                             {{ $field->active ? 'Desactivar' : 'Activar' }}
                                         </button>
-                                        <button type="button" wire:click="deleteField({{ $field->field_id }})"
-                                            onclick="confirm('¿Eliminar este campo? Si ya tiene valores guardados solo se desactivará.') || event.stopImmediatePropagation()"
-                                            class="rounded-full border border-[#d77a7a]/40 px-3 py-1 text-xs font-semibold text-[#9c1c1c] hover:bg-[#f9dede]">
+                                        <button type="button" x-on:click="$dispatch('confirmar', { message: '¿Eliminar este campo? Si ya tiene valores guardados solo se desactivará.', action: () => $wire.deleteField({{ $field->field_id }}) })"
+                                            class="btn btn-sm btn-danger">
                                             Eliminar
                                         </button>
                                     </div>
@@ -99,7 +94,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-4 py-6 text-center text-sm text-slate-500">
+                                <td colspan="7" class="table-empty">
                                     Este tipo todavía no tiene campos propios. Las publicaciones de este tipo solo pedirán los campos comunes.
                                 </td>
                             </tr>
@@ -111,8 +106,8 @@
 
         {{-- Formulario del campo --}}
         @if ($showForm)
-            <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
-                <h3 class="text-lg font-semibold text-[#2b2323]">{{ $form->fieldId ? 'Editar campo' : 'Nuevo campo' }}</h3>
+            <div class="card">
+                <h3 class="section-title">{{ $form->fieldId ? 'Editar campo' : 'Nuevo campo' }}</h3>
 
                 <div class="mt-6 grid gap-4 md:grid-cols-2">
                     <div>
@@ -139,15 +134,15 @@
                     @if ($type !== 'si_no')
                         <div class="flex items-center gap-2">
                             <input id="field_required" type="checkbox" wire:model="form.required"
-                                class="rounded border-red-200 text-red-600 focus:ring-red-500" />
+                                class="field-check" />
                             <label for="field_required" class="text-sm text-slate-600">Obligatorio</label>
                         </div>
                     @endif
                 </div>
 
                 {{-- Validaciones según la clase --}}
-                <div class="mt-6 rounded-xl border border-[#f0dede] bg-[#fffafa] p-4">
-                    <h4 class="text-sm font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">Validaciones</h4>
+                <div class="mt-6 rounded-xl border border-siproc-line bg-siproc-blush p-4">
+                    <h4 class="text-sm font-semibold uppercase tracking-[0.2em] text-siproc-red">Validaciones</h4>
 
                     <div class="mt-4 grid gap-4 md:grid-cols-2">
                         @if (in_array($type, ['texto', 'texto_largo']))
@@ -180,7 +175,7 @@
                         @if ($type === 'numero')
                             <div class="flex items-center gap-2 md:col-span-2">
                                 <input id="field_integer" type="checkbox" wire:model="form.integer"
-                                    class="rounded border-red-200 text-red-600 focus:ring-red-500" />
+                                    class="field-check" />
                                 <label for="field_integer" class="text-sm text-slate-600">Solo números enteros</label>
                             </div>
                             <div>
@@ -208,7 +203,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <input id="field_no_future" type="checkbox" wire:model="form.no_future"
-                                    class="rounded border-red-200 text-red-600 focus:ring-red-500" />
+                                    class="field-check" />
                                 <label for="field_no_future" class="text-sm text-slate-600">No puede ser futura</label>
                             </div>
                         @endif
@@ -222,7 +217,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <input id="field_multiple" type="checkbox" wire:model="form.multiple"
-                                    class="rounded border-red-200 text-red-600 focus:ring-red-500" />
+                                    class="field-check" />
                                 <label for="field_multiple" class="text-sm text-slate-600">Permitir elegir varias opciones</label>
                             </div>
                         @endif
@@ -230,7 +225,7 @@
                         @if (in_array($type, ['texto', 'numero']))
                             <div class="flex items-center gap-2">
                                 <input id="field_unique" type="checkbox" wire:model="form.unique"
-                                    class="rounded border-red-200 text-red-600 focus:ring-red-500" />
+                                    class="field-check" />
                                 <label for="field_unique" class="text-sm text-slate-600">Único (no se puede repetir entre publicaciones de este tipo)</label>
                             </div>
                             <x-input-error :messages="$errors->get('form.unique')" class="md:col-span-2" />
@@ -275,11 +270,11 @@
 
                 <div class="mt-6 flex justify-end gap-2">
                     <button type="button" wire:click="cancel"
-                        class="rounded-full border border-[#9c1c1c]/30 px-4 py-2 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                        class="btn btn-outline">
                         Cancelar
                     </button>
-                    <button type="button" wire:click="saveField"
-                        class="rounded-full bg-[#9c1c1c] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#7a1515]">
+                    <button type="button" wire:click="saveField" wire:loading.attr="disabled" wire:target="saveField"
+                        class="btn btn-primary"><x-spinner wire:loading wire:target="saveField" />
                         Guardar campo
                     </button>
                 </div>

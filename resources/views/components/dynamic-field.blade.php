@@ -15,8 +15,8 @@
     $name = "{$model}.{$field->key}";
     $id = "{$idPrefix}_{$field->key}";
     $r = \App\Support\DynamicFields\FieldRuleBuilder::allowedRules($field);
-    $labelClass = 'text-xs font-semibold uppercase tracking-[0.2em] text-slate-600';
-    $selectClass = 'mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600';
+    $labelClass = 'form-label';
+    $selectClass = 'mt-2 block w-full field';
     $wide = $field->field_type === 'texto_largo' || $field->isMultipleList();
     $maxDate = ! empty($r['no_future']) ? now()->toDateString() : ($r['max_date'] ?? null);
     $messages = array_merge($bag->get($name), $bag->get("{$name}.*"));
@@ -25,7 +25,7 @@
 <div {{ $attributes->merge(['class' => $wide ? 'md:col-span-2' : '']) }}>
     @if ($field->field_type !== 'si_no')
         <x-input-label :for="$id" :class="$labelClass">
-            {{ $field->label }}@if ($field->required) <span class="text-[#9c1c1c]">*</span>@endif
+            {{ $field->label }}@if ($field->required) <span class="text-siproc-red">*</span>@endif
         </x-input-label>
     @endif
 
@@ -61,7 +61,7 @@
                     @foreach ($field->options ?? [] as $option)
                         <label class="inline-flex items-center gap-2 text-sm text-slate-700">
                             <input type="checkbox" value="{{ $option }}" wire:model="{{ $name }}"
-                                class="rounded border-red-200 text-red-600 focus:ring-red-500" />
+                                class="field-check" />
                             {{ $option }}
                         </label>
                     @endforeach
@@ -79,7 +79,7 @@
         @case('si_no')
             <label for="{{ $id }}" class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
                 <input id="{{ $id }}" type="checkbox" wire:model="{{ $name }}"
-                    class="rounded border-red-200 text-red-600 focus:ring-red-500" />
+                    class="field-check" />
                 {{ $field->label }}
             </label>
             @break
