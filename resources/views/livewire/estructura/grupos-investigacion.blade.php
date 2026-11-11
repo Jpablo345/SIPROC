@@ -133,25 +133,25 @@ new class extends Component {
 }; ?>
 
 <div class="space-y-6">
-    <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
+    <div class="card">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <h3 class="text-lg font-semibold text-[#2b2323]">
+                <h3 class="section-title">
                     {{ $editingCode ? 'Editar grupo' : 'Nuevo grupo' }}
                 </h3>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
-                    Vinculado a una institucion
+                <p class="eyebrow">
+                    Vinculado a una institución
                 </p>
             </div>
             <div class="flex flex-wrap gap-2">
                 @if ($editingCode)
                     <button type="button" wire:click="cancelEdit"
-                        class="rounded-full border border-[#9c1c1c]/30 px-4 py-2 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                        class="btn btn-outline">
                         Cancelar
                     </button>
                 @endif
-                <button type="button" wire:click="save"
-                    class="rounded-full bg-[#9c1c1c] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#7a1515]">
+                <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save"
+                    class="btn btn-primary"><x-spinner wire:loading wire:target="save" />
                     {{ $editingCode ? 'Guardar cambios' : 'Crear grupo' }}
                 </button>
             </div>
@@ -161,17 +161,17 @@ new class extends Component {
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div>
-                <x-input-label for="cod_minciencias" :value="'Codigo Minciencias'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="cod_minciencias" :value="'Código Minciencias'"
+                    class="form-label" />
                 <x-text-input id="cod_minciencias" wire:model.defer="cod_minciencias" type="text"
                     class="mt-2 block w-full" />
             </div>
             <div>
-                <x-input-label for="group_classification" :value="'Clasificacion'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="group_classification" :value="'Clasificación'"
+                    class="form-label" />
                 <select id="group_classification" wire:model="group_classification"
-                    class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
-                    <option value="">Sin clasificacion</option>
+                    class="mt-2 block w-full field">
+                    <option value="">Sin clasificación</option>
                     <option value="Categoría A1">Categoría A1</option>
                     <option value="Categoría A">Categoría A</option>
                     <option value="Categoría B">Categoría B</option>
@@ -182,14 +182,14 @@ new class extends Component {
             </div>
             <div class="md:col-span-2">
                 <x-input-label for="group_name" :value="'Nombre del grupo'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                    class="form-label" />
                 <x-text-input id="group_name" wire:model.defer="group_name" type="text" class="mt-2 block w-full" />
             </div>
             <div class="md:col-span-2">
-                <x-input-label for="institution_id" :value="'Institucion'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label for="institution_id" :value="'Institución'"
+                    class="form-label" />
                 <select id="institution_id" wire:model.defer="institution_id"
-                    class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
+                    class="mt-2 block w-full field">
                     <option value="">Sin asignar</option>
                     @foreach ($this->institutions as $institution)
                         <option value="{{ $institution->institution_id }}">{{ $institution->institution_name }}</option>
@@ -199,52 +199,47 @@ new class extends Component {
         </div>
     </div>
 
-    <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
+    <div class="card">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h3 class="text-lg font-semibold text-[#2b2323]">Grupos registrados</h3>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">{{ $this->groups->total() }}
+                <h3 class="section-title">Grupos registrados</h3>
+                <p class="eyebrow">{{ $this->groups->total() }}
                     registros</p>
             </div>
             <div class="w-full sm:w-72">
-                <x-text-input wire:model.live="search" type="search"
-                    placeholder="Buscar por codigo, nombre o institucion" class="w-full" />
+                <x-text-input wire:model.live.debounce.300ms="search" type="search"
+                    placeholder="Buscar por código, nombre o institución" class="w-full" />
             </div>
         </div>
 
-        @if (session('status'))
-            <div class="mt-4 rounded-xl bg-[#f7e2d2] px-4 py-3 text-xs font-semibold text-[#7a1515]">
-                {{ session('status') }}
-            </div>
-        @endif
+        <x-flash-status />
 
-        <div class="mt-6 overflow-hidden rounded-2xl border border-[#f0dede]">
-            <table class="min-w-full divide-y divide-[#f0dede] text-sm">
-                <thead class="bg-[#fff7f7] text-left text-xs font-semibold uppercase tracking-[0.2em] text-[#7a1515]">
+        <div class="mt-6 table-wrap" wire:loading.delay.class="opacity-50">
+            <table class="data-table">
+                <thead class="table-head">
                     <tr>
-                        <th class="px-4 py-3">Codigo</th>
+                        <th class="px-4 py-3">Código</th>
                         <th class="px-4 py-3">Nombre</th>
-                        <th class="px-4 py-3">Clasificacion</th>
-                        <th class="px-4 py-3">Institucion</th>
+                        <th class="px-4 py-3">Clasificación</th>
+                        <th class="px-4 py-3">Institución</th>
                         <th class="px-4 py-3 text-right">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[#f0dede] bg-white">
+                <tbody class="table-body">
                     @forelse ($this->groups as $group)
-                        <tr wire:key="group-{{ $group->cod_minciencias }}" class="hover:bg-[#fff7f7]">
-                            <td class="px-4 py-3 font-semibold text-[#2b2323]">{{ $group->cod_minciencias }}</td>
+                        <tr wire:key="group-{{ $group->cod_minciencias }}" class="hover:bg-siproc-blush">
+                            <td class="px-4 py-3 font-semibold text-siproc-ink">{{ $group->cod_minciencias }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $group->group_name }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $group->group_classification ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $group->institution?->institution_name ?? '—' }}</td>
                             <td class="px-4 py-3 text-right">
                                 <div class="flex justify-end gap-2">
                                     <button type="button" wire:click="edit('{{ $group->cod_minciencias }}')"
-                                        class="rounded-full border border-[#9c1c1c]/30 px-3 py-1 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                                        class="btn btn-sm btn-outline">
                                         Editar
                                     </button>
-                                    <button type="button" wire:click="delete('{{ $group->cod_minciencias }}')"
-                                        onclick="confirm('Seguro que deseas eliminar este grupo?') || event.stopImmediatePropagation()"
-                                        class="rounded-full border border-[#d77a7a]/40 px-3 py-1 text-xs font-semibold text-[#9c1c1c] hover:bg-[#f9dede]">
+                                    <button type="button" x-on:click="$dispatch('confirmar', { message: '¿Seguro que deseas eliminar este grupo?', action: () => $wire.delete('{{ $group->cod_minciencias }}') })"
+                                        class="btn btn-sm btn-danger">
                                         Eliminar
                                     </button>
                                 </div>
@@ -252,8 +247,8 @@ new class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-6 text-center text-sm text-slate-500">
-                                No hay grupos registrados todavia.
+                            <td colspan="5" class="table-empty">
+                                No hay grupos registrados todavía.
                             </td>
                         </tr>
                     @endforelse

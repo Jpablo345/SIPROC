@@ -1,4 +1,1 @@
-import axios from 'axios';
-window.axios = axios;
-
-window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+// Livewire ya incluye Alpine y su propio cliente HTTP; aquí va el JS propio de la app si hace falta.

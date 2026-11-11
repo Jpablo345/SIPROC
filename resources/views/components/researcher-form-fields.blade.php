@@ -15,8 +15,8 @@
 @php
     $field = fn (string $name) => "{$model}.{$name}";
     $id = fn (string $name) => "{$idPrefix}_{$name}";
-    $label = 'text-xs font-semibold uppercase tracking-[0.2em] text-slate-600';
-    $select = 'mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600';
+    $label = 'form-label';
+    $select = 'mt-2 block w-full field';
 @endphp
 
 <div class="mt-4 grid gap-4 md:grid-cols-2">
@@ -48,7 +48,7 @@
     </div>
     <div class="flex items-center gap-2 pt-6">
         <input id="{{ $id('create_group') }}" type="checkbox" wire:model.live="{{ $field('create_group') }}"
-            class="rounded border-red-200 text-red-600 focus:ring-red-500" />
+            class="field-check" />
         <label for="{{ $id('create_group') }}" class="text-sm text-slate-600">Crear grupo nuevo</label>
     </div>
 </div>
@@ -89,7 +89,7 @@
 
     <div class="mt-4 flex items-center gap-2">
         <input id="{{ $id('create_institution') }}" type="checkbox" wire:model.live="{{ $field('create_institution') }}"
-            class="rounded border-red-200 text-red-600 focus:ring-red-500" />
+            class="field-check" />
         <label for="{{ $id('create_institution') }}" class="text-sm text-slate-600">Crear institución nueva</label>
     </div>
 

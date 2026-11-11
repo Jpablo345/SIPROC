@@ -201,46 +201,42 @@ new class extends Component {
 <div class="space-y-6">
 
     {{-- Formulario --}}
-    <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
+    <div class="card">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <h3 class="text-lg font-semibold text-[#2b2323]">
+                <h3 class="section-title">
                     {{ $this->editingId ? 'Editar evento' : 'Nuevo evento' }}
                 </h3>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
+                <p class="eyebrow">
                     Datos generales del evento
                 </p>
             </div>
             <div class="flex flex-wrap gap-2">
                 @if ($this->editingId)
                     <button type="button" wire:click="cancelEdit"
-                        class="rounded-full border border-[#9c1c1c]/30 px-4 py-2 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                        class="btn btn-outline">
                         Cancelar
                     </button>
                 @endif
-                <button type="button" wire:click="save"
-                    class="rounded-full bg-[#9c1c1c] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#7a1515]">
+                <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save"
+                    class="btn btn-primary"><x-spinner wire:loading wire:target="save" />
                     {{ $this->editingId ? 'Guardar cambios' : 'Crear evento' }}
                 </button>
             </div>
         </div>
 
-        @if (session('status'))
-            <div class="mt-4 rounded-xl bg-[#f7e2d2] px-4 py-3 text-xs font-semibold text-[#7a1515]">
-                {{ session('status') }}
-            </div>
-        @endif
+        <x-flash-status />
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div>
-                <x-input-label :value="'Año'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label :value="'Año'" class="form-label" />
                 <x-text-input wire:model.defer="event_year" type="text" class="mt-2 block w-full" placeholder="2024" />
                 <x-input-error :messages="$errors->get('event_year')" class="mt-2" />
             </div>
             <div>
-                <x-input-label :value="'Mes'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label :value="'Mes'" class="form-label" />
                 <select wire:model.defer="event_month"
-                    class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
+                    class="mt-2 block w-full field">
                     <option value="">Sin definir</option>
                     @foreach(['1' => 'Enero', '2' => 'Febrero', '3' => 'Marzo', '4' => 'Abril', '5' => 'Mayo', '6' => 'Junio', '7' => 'Julio', '8' => 'Agosto', '9' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'] as $num => $nombre)
                         <option value="{{ $num }}">{{ $nombre }}</option>
@@ -250,7 +246,7 @@ new class extends Component {
             </div>
             <div class="md:col-span-2">
                 <x-input-label :value="'Nombre del evento'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                    class="form-label" />
                 <x-text-input wire:model.defer="event_name" type="text" class="mt-2 block w-full" />
                 <x-input-error :messages="$errors->get('event_name')" class="mt-2" />
             </div>
@@ -258,9 +254,9 @@ new class extends Component {
             {{-- Tipo de participación --}}
             <div class="md:col-span-2">
                 <x-input-label :value="'Tipo de participación'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                    class="form-label" />
                 <select wire:model.defer="participation_type"
-                    class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
+                    class="mt-2 block w-full field">
                     <option value="Ponente">Ponencia</option>
                     <option value="Asistente">Asistencia</option>
                     <option value="Organizador">Organizador</option>
@@ -283,9 +279,9 @@ new class extends Component {
 
             <div>
                 <x-input-label :value="'Ámbito'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                    class="form-label" />
                 <select wire:model.defer="event_scope"
-                    class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
+                    class="mt-2 block w-full field">
                     <option value="">Sin definir</option>
                     <option value="Nacional">Nacional</option>
                     <option value="Internacional">Internacional</option>
@@ -293,7 +289,7 @@ new class extends Component {
                 <x-input-error :messages="$errors->get('event_scope')" class="mt-2" />
             </div>
             <div>
-                <x-input-label :value="'URL'" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                <x-input-label :value="'URL'" class="form-label" />
                 <x-text-input wire:model.defer="event_url" type="url" class="mt-2 block w-full"
                     placeholder="https://" />
                 <x-input-error :messages="$errors->get('event_url')" class="mt-2" />
@@ -305,23 +301,23 @@ new class extends Component {
     <livewire:eventos.conferencista-selector wire:model="selectedSpeakers" />
 
     {{-- Tabla --}}
-    <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
+    <div class="card">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h3 class="text-lg font-semibold text-[#2b2323]">Eventos registrados</h3>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
+                <h3 class="section-title">Eventos registrados</h3>
+                <p class="eyebrow">
                     {{ $this->events->total() }} registros
                 </p>
             </div>
             <div class="w-full sm:w-72">
-                <x-text-input wire:model.live="search" type="search" placeholder="Buscar por nombre, institución..."
+                <x-text-input wire:model.live.debounce.300ms="search" type="search" placeholder="Buscar por nombre, institución..."
                     class="w-full" />
             </div>
         </div>
 
-        <div class="mt-6 overflow-x-auto rounded-2xl border border-[#f0dede]">
-            <table class="min-w-full divide-y divide-[#f0dede] text-sm">
-                <thead class="bg-[#fff7f7] text-left text-xs font-semibold uppercase tracking-[0.2em] text-[#7a1515]">
+        <div class="mt-6 table-wrap" wire:loading.delay.class="opacity-50">
+            <table class="data-table">
+                <thead class="table-head">
                     <tr>
                         <th class="px-4 py-3">Año</th>
                         <th class="px-4 py-3">Mes</th>
@@ -335,7 +331,7 @@ new class extends Component {
                         <th class="px-4 py-3 text-right">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[#f0dede] bg-white">
+                <tbody class="table-body">
                     @php
                         $meses = [
                             1 => 'Enero',
@@ -362,10 +358,10 @@ new class extends Component {
                             $tiposParticipacion = $event->researcherEvents->pluck('participation_type')
                                 ->filter()->unique()->implode(', ');
                         @endphp
-                        <tr wire:key="event-{{ $event->event_id }}" class="hover:bg-[#fff7f7]">
+                        <tr wire:key="event-{{ $event->event_id }}" class="hover:bg-siproc-blush">
                             <td class="px-4 py-3 text-slate-600">{{ $event->event_year ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $meses[$event->event_month] ?? '—' }}</td>
-                            <td class="px-4 py-3 font-semibold text-[#2b2323]">{{ $event->event_name }}</td>
+                            <td class="px-4 py-3 font-semibold text-siproc-ink">{{ $event->event_name }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $event->event_scope ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $event->hostInstitution?->institution_name ?? '—' }}
                             </td>
@@ -384,12 +380,11 @@ new class extends Component {
                             <td class="px-4 py-3 text-right">
                                 <div class="flex justify-end gap-2">
                                     <button type="button" wire:click="edit({{ $event->event_id }})"
-                                        class="rounded-full border border-[#9c1c1c]/30 px-3 py-1 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                                        class="btn btn-sm btn-outline">
                                         Editar
                                     </button>
-                                    <button type="button" wire:click="delete({{ $event->event_id }})"
-                                        onclick="confirm('¿Seguro que deseas eliminar este evento?') || event.stopImmediatePropagation()"
-                                        class="rounded-full border border-[#d77a7a]/40 px-3 py-1 text-xs font-semibold text-[#9c1c1c] hover:bg-[#f9dede]">
+                                    <button type="button" x-on:click="$dispatch('confirmar', { message: '¿Seguro que deseas eliminar este evento?', action: () => $wire.delete({{ $event->event_id }}) })"
+                                        class="btn btn-sm btn-danger">
                                         Eliminar
                                     </button>
                                 </div>
@@ -397,7 +392,7 @@ new class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="px-4 py-6 text-center text-sm text-slate-500">
+                            <td colspan="10" class="table-empty">
                                 No hay eventos registrados todavía.
                             </td>
                         </tr>

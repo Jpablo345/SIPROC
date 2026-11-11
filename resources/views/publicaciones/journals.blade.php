@@ -1,47 +1,43 @@
 <div>
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-[#9c1c1c]">Publicaciones</p>
-            <h2 class="text-2xl font-semibold text-[#2b2323]">Revistas</h2>
+            <p class="page-eyebrow">Publicaciones</p>
+            <h2 class="page-title">Revistas</h2>
         </div>
     </div>
 
     <div class="mt-6 space-y-6">
         {{-- Formulario --}}
-        <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
+        <div class="card">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                    <h3 class="text-lg font-semibold text-[#2b2323]">
+                    <h3 class="section-title">
                         {{ $editingId ? 'Editar revista' : 'Nueva revista' }}
                     </h3>
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
+                    <p class="eyebrow">
                         Registra revistas por ISSN y nombre
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     @if ($editingId)
                         <button type="button" wire:click="cancelEdit"
-                            class="rounded-full border border-[#9c1c1c]/30 px-4 py-2 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                            class="btn btn-outline">
                             Cancelar
                         </button>
                     @endif
-                    <button type="button" wire:click="save"
-                        class="rounded-full bg-[#9c1c1c] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#7a1515]">
+                    <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save"
+                        class="btn btn-primary"><x-spinner wire:loading wire:target="save" />
                         {{ $editingId ? 'Guardar cambios' : 'Crear revista' }}
                     </button>
                 </div>
             </div>
 
-            @if (session('status'))
-                <div class="mt-4 rounded-xl bg-[#f7e2d2] px-4 py-3 text-xs font-semibold text-[#7a1515]">
-                    {{ session('status') }}
-                </div>
-            @endif
+            <x-flash-status />
 
             <div class="mt-6 grid gap-4 md:grid-cols-2">
                 <div>
                     <x-input-label for="journal_issn" :value="'ISSN'"
-                        class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                        class="form-label" />
                     <x-text-input id="journal_issn" wire:model="journal_issn" type="text"
                         class="mt-2 block w-full {{ $editingId ? 'bg-slate-100 cursor-not-allowed' : '' }}"
                         :disabled="(bool) $editingId" />
@@ -52,16 +48,16 @@
                 </div>
                 <div>
                     <x-input-label for="journal_name" :value="'Nombre de la revista'"
-                        class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                        class="form-label" />
                     <x-text-input id="journal_name" wire:model="journal_name" type="text" class="mt-2 block w-full" />
                     <x-input-error :messages="$errors->get('journal_name')" class="mt-2" />
                 </div>
                 <div class="md:col-span-2">
-                    <x-input-label for="category" :value="'Categoria (Q1, Q2, etc.)'"
-                        class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                    <x-input-label for="category" :value="'Categoría (Q1, Q2, etc.)'"
+                        class="form-label" />
                     <select id="category" wire:model="category"
-                        class="mt-2 block w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm transition-colors focus:border-red-600 focus:ring-red-600">
-                        <option value="">Sin clasificacion</option>
+                        class="mt-2 block w-full field">
+                        <option value="">Sin clasificación</option>
                         <option value="Q1">Q1</option>
                         <option value="Q2">Q2</option>
                         <option value="Q3">Q3</option>
@@ -75,46 +71,45 @@
         </div>
 
         {{-- Tabla --}}
-        <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
+        <div class="card">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h3 class="text-lg font-semibold text-[#2b2323]">Revistas registradas</h3>
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
+                    <h3 class="section-title">Revistas registradas</h3>
+                    <p class="eyebrow">
                         {{ $this->journals->total() }} registros
                     </p>
                 </div>
                 <div class="w-full sm:w-72">
-                    <x-text-input wire:model.live="search" type="search" placeholder="Buscar por nombre o ISSN"
+                    <x-text-input wire:model.live.debounce.300ms="search" type="search" placeholder="Buscar por nombre o ISSN"
                         class="w-full" />
                 </div>
             </div>
 
-            <div class="mt-6 overflow-hidden rounded-2xl border border-[#f0dede]">
-                <table class="min-w-full divide-y divide-[#f0dede] text-sm">
+            <div class="mt-6 table-wrap" wire:loading.delay.class="opacity-50">
+                <table class="data-table">
                     <thead
-                        class="bg-[#fff7f7] text-left text-xs font-semibold uppercase tracking-[0.2em] text-[#7a1515]">
+                        class="table-head">
                         <tr>
                             <th class="px-4 py-3">ISSN</th>
                             <th class="px-4 py-3">Nombre</th>
-                            <th class="px-4 py-3">Categoria</th>
+                            <th class="px-4 py-3">Categoría</th>
                             <th class="px-4 py-3 text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[#f0dede] bg-white">
+                    <tbody class="table-body">
                         @forelse ($this->journals as $journal)
-                            <tr wire:key="journal-{{ $journal->journal_issn }}" class="hover:bg-[#fff7f7]">
+                            <tr wire:key="journal-{{ $journal->journal_issn }}" class="hover:bg-siproc-blush">
                                 <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ $journal->journal_issn }}</td>
-                                <td class="px-4 py-3 font-semibold text-[#2b2323]">{{ $journal->journal_name }}</td>
+                                <td class="px-4 py-3 font-semibold text-siproc-ink">{{ $journal->journal_name }}</td>
                                 <td class="px-4 py-3 text-slate-500">{{ $journal->category ?? '—' }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex justify-end gap-2">
                                         <button type="button" wire:click="edit('{{ $journal->journal_issn }}')"
-                                            class="rounded-full border border-[#9c1c1c]/30 px-3 py-1 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                                            class="btn btn-sm btn-outline">
                                             Editar
                                         </button>
-                                        <button type="button" wire:click="delete('{{ $journal->journal_issn }}')"
-                                            onclick="confirm('Seguro que deseas eliminar esta revista?') || event.stopImmediatePropagation()"
-                                            class="rounded-full border border-[#d77a7a]/40 px-3 py-1 text-xs font-semibold text-[#9c1c1c] hover:bg-[#f9dede]">
+                                        <button type="button" x-on:click="$dispatch('confirmar', { message: '¿Seguro que deseas eliminar esta revista?', action: () => $wire.delete('{{ $journal->journal_issn }}') })"
+                                            class="btn btn-sm btn-danger">
                                             Eliminar
                                         </button>
                                     </div>
@@ -122,8 +117,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-4 py-6 text-center text-sm text-slate-500">
-                                    No hay revistas registradas todavia.
+                                <td colspan="4" class="table-empty">
+                                    No hay revistas registradas todavía.
                                 </td>
                             </tr>
                         @endforelse

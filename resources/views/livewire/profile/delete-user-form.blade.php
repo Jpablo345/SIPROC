@@ -39,7 +39,7 @@ new class extends Component
             type="button"
             x-data=""
             x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
-            class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded-md transition-colors shadow-sm focus:outline-none"
+            class="px-5 py-2.5 bg-siproc-red hover:bg-siproc-red-dark text-white font-medium text-sm rounded-md transition-colors shadow-sm focus:outline-none"
         >
             {{ __('Eliminar Cuenta') }}
         </button>
@@ -64,11 +64,11 @@ new class extends Component
                     id="password"
                     name="password"
                     type="password"
-                    class="block w-3/4 rounded-md border-gray-300 bg-gray-50 text-gray-800 shadow-sm focus:border-red-600 focus:ring focus:ring-red-200 focus:ring-opacity-50 p-2.5"
+                    class="block w-3/4 field"
                     placeholder="{{ __('Introduce tu contraseña') }}"
                 />
 
-                <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-600 text-sm" />
+                <x-input-error :messages="$errors->get('password')" class="mt-2 text-siproc-red text-sm" />
             </div>
 
             <div class="mt-6 flex justify-end gap-3">
@@ -82,7 +82,7 @@ new class extends Component
 
                 <button 
                     type="submit" 
-                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded-md transition-colors shadow-sm"
+                    class="px-4 py-2 bg-siproc-red hover:bg-siproc-red-dark text-white font-medium text-sm rounded-md transition-colors shadow-sm"
                 >
                     {{ __('Eliminar Cuenta Permanentemente') }}
                 </button>

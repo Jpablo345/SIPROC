@@ -4,16 +4,199 @@
 
 @layer base {
 	:root {
-		--siproc-red: #9c1c1c;
-		--siproc-red-dark: #6f1414;
-		--siproc-cream: #f6efe9;
-		--siproc-rose: #f3d7d7;
-		--siproc-ink: #2b2323;
+		--siproc-red: theme('colors.siproc.red.DEFAULT');
+		--siproc-red-dark: theme('colors.siproc.red.dark');
+		--siproc-cream: theme('colors.siproc.cream');
+		--siproc-rose: theme('colors.siproc.rose');
+		--siproc-ink: theme('colors.siproc.ink.DEFAULT');
 	}
 
 	body {
-		font-family: "Space Grotesk", sans-serif;
-		background: var(--siproc-cream);
-		color: var(--siproc-ink);
+		@apply bg-siproc-cream font-sans text-siproc-ink;
 	}
+
+	[x-cloak] {
+		display: none !important;
+	}
+}
+
+/*
+ * Piezas visuales que se repiten en todas las pantallas.
+ * Cambiar el estilo aquí lo cambia en toda la aplicación.
+ */
+@layer components {
+	/* Contenedores */
+	.card {
+		@apply rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm;
+	}
+
+	/* Títulos */
+	.page-eyebrow {
+		@apply text-xs font-semibold uppercase tracking-[0.3em] text-siproc-red;
+	}
+
+	.page-title {
+		@apply text-2xl font-semibold text-siproc-ink;
+	}
+
+	.section-title {
+		@apply text-lg font-semibold text-siproc-ink;
+	}
+
+	.eyebrow {
+		@apply text-xs font-semibold uppercase tracking-[0.2em] text-siproc-red;
+	}
+
+	/* Botones */
+	.btn {
+		@apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition
+			focus:outline-none focus-visible:ring-2 focus-visible:ring-siproc-red focus-visible:ring-offset-2
+			disabled:cursor-not-allowed disabled:opacity-50;
+	}
+
+	.btn-sm {
+		@apply px-3 py-1;
+	}
+
+	.btn-primary {
+		@apply bg-siproc-red text-white shadow-sm hover:bg-siproc-red-dark;
+	}
+
+	.btn-dark {
+		@apply bg-siproc-ink text-white shadow-sm hover:bg-siproc-ink-dark;
+	}
+
+	.btn-outline {
+		@apply border border-siproc-red/30 text-siproc-red-dark hover:bg-siproc-rose;
+	}
+
+	.btn-danger {
+		@apply border border-siproc-red-light/40 text-siproc-red hover:bg-siproc-rose;
+	}
+
+	/* Formularios */
+	.form-label {
+		@apply block text-xs font-semibold uppercase tracking-[0.2em] text-slate-600;
+	}
+
+	.field {
+		@apply rounded-md border-siproc-rose bg-white text-zinc-900 shadow-sm transition-colors
+			focus:border-siproc-red focus:ring-siproc-red;
+	}
+
+	.field-check {
+		@apply rounded border-siproc-rose text-siproc-red focus:ring-siproc-red;
+	}
+
+	/* Tablas */
+	.table-wrap {
+		@apply overflow-x-auto rounded-2xl border border-siproc-line transition-opacity;
+	}
+
+	.data-table {
+		@apply min-w-full divide-y divide-siproc-line text-sm;
+	}
+
+	.table-head {
+		@apply bg-siproc-blush text-left text-xs font-semibold uppercase tracking-[0.2em] text-siproc-red-dark;
+	}
+
+	.table-body {
+		@apply divide-y divide-siproc-line bg-white;
+	}
+
+	.table-empty {
+		@apply px-4 py-6 text-center text-sm text-slate-500;
+	}
+
+	/* Avisos */
+	.alert {
+		@apply rounded-xl bg-siproc-sand px-4 py-3 text-xs font-semibold text-siproc-red-dark;
+	}
+
+	/* Insignias */
+	.badge {
+		@apply inline-flex items-center rounded-full bg-siproc-rose px-3 py-1 text-xs font-semibold text-siproc-red-dark;
+	}
+}
+
+/* Opciones del widget de accesibilidad (resources/views/components/accessibility-widget.blade.php). */
+.siproc-contraste-invertido {
+	filter: invert(100%) hue-rotate(180deg) !important;
+}
+
+.siproc-contraste-invertido img {
+	filter: invert(100%) hue-rotate(180deg) !important;
+}
+
+.siproc-contraste-oscuro {
+	background: #000 !important;
+	color: #fff !important;
+}
+
+.siproc-contraste-oscuro * {
+	background-color: #000 !important;
+	color: #fff !important;
+	border-color: #555 !important;
+}
+
+.siproc-contraste-claro {
+	background: #fff !important;
+	color: #000 !important;
+}
+
+.siproc-contraste-claro * {
+	background-color: #fff !important;
+	color: #000 !important;
+	border-color: #ccc !important;
+}
+
+.siproc-texto-1 {
+	zoom: 1.1;
+}
+
+.siproc-texto-2 {
+	zoom: 1.25;
+}
+
+.siproc-texto-3 {
+	zoom: 1.5;
+}
+
+.siproc-saturacion-1 {
+	filter: saturate(30%) !important;
+}
+
+.siproc-saturacion-2 {
+	filter: saturate(0%) !important;
+}
+
+.siproc-saturacion-3 {
+	filter: saturate(200%) !important;
+}
+
+.siproc-enlaces a {
+	text-decoration: underline !important;
+	font-weight: bold !important;
+	color: #1d4ed8 !important;
+	background: #dbeafe !important;
+	padding: 0 2px !important;
+	border-radius: 2px !important;
+}
+
+.siproc-espaciado * {
+	letter-spacing: 0.1em !important;
+	word-spacing: 0.2em !important;
+}
+
+.siproc-dislexia {
+	font-family: 'Comic Sans MS', cursive !important;
+}
+
+.siproc-line-height {
+	line-height: 2 !important;
+}
+
+.siproc-sin-imagenes img {
+	visibility: hidden !important;
 }

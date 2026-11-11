@@ -10,12 +10,12 @@
     <link rel="icon" href="{{ asset('img/logoufps.png') }}?v=1" type="image/png">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=space-grotesk:400,500,600,700&display=swap" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans text-gray-900 antialiased bg-red-700">
+<body class="font-sans text-gray-900 antialiased bg-siproc-red-dark">
 
     <header class="w-full bg-white shadow-md  border-zinc-200 sticky top-0 z-50">
         <div class="flex flex-col md:flex-row items-stretch min-h-[100px]">
@@ -33,7 +33,7 @@
             </a>
 
 
-            <div class="bg-red-600 flex-grow flex items-center justify-end px-10">
+            <div class="bg-siproc-red flex-grow flex items-center justify-end px-10">
                 <span class="text-white font-black text-6xl tracking-[0.2em] select-none">
                     SIPROC
                 </span>

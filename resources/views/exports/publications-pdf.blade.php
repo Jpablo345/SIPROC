@@ -48,8 +48,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 5px;
-            margin-bottom: 20px;
+            margin: 0;
             font-size: 8px;
         }
 
@@ -68,6 +67,11 @@
             border: 1px solid #f0dede;
             padding: 5px 4px;
             vertical-align: top;
+        }
+
+        .table-container {
+            margin-top: 5px;
+            margin-bottom: 20px;
         }
 
         .extra-info {
@@ -103,8 +107,8 @@
     TABLA DE ARTÍCULOS CIENTÍFICOS
     ═══════════════════════════════════════════════════════════════════ --}}
     @php
-        $articles = $publications->filter(fn($p) => $p->article !== null);
-        $books = $publications->filter(fn($p) => $p->book !== null);
+        $articles = $publications->filter(fn($p) => $p->article !== null)->values();
+        $books = $publications->filter(fn($p) => $p->book !== null)->values();
         $configurables = $publications->filter(fn($p) => $p->article === null && $p->book === null && $p->type && ! $p->type->is_system)->values();
     @endphp
 
@@ -113,6 +117,8 @@
         <div class="section-stats">Total: {{ $articles->count() }} artículos</div>
 
         <div class="table-container">
+            {{-- Tablas de 40 filas: DomPDF guarda en memoria el mapa completo de cada tabla. --}}
+            @foreach($articles->chunk(40) as $chunk)
             <table>
                 <thead>
                     <tr>
@@ -130,7 +136,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($articles as $index => $publication)
+                    @foreach($chunk as $index => $publication)
                         @php
                             $authors = $publication->researchers->sortBy(fn($r) => $r->pivot->author_order ?? 999);
                             $authorsList = $authors->map(fn($r) => trim(implode(' ', array_filter([
@@ -152,7 +158,7 @@
                             <td>
                                 <strong>{{ Str::limit($publication->title, 55) }}</strong>
                                 @if($publication->url)
-                                    <div class="extra-info">🔗 {{ Str::limit($publication->url, 35) }}</div>
+                                    <div class="extra-info">Enlace: {{ Str::limit($publication->url, 35) }}</div>
                                 @endif
                             </td>
                             <td style="text-align: center">{{ $publication->publication_year ?? '—' }}</td>
@@ -168,6 +174,7 @@
                     @endforeach
                 </tbody>
             </table>
+            @endforeach
         </div>
     @endif
 
@@ -179,6 +186,8 @@
         <div class="section-stats">Total: {{ $books->count() }} libros</div>
 
         <div class="table-container">
+            {{-- Tablas de 40 filas: DomPDF guarda en memoria el mapa completo de cada tabla. --}}
+            @foreach($books->chunk(40) as $chunk)
             <table>
                 <thead>
                     <tr>
@@ -196,7 +205,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($books as $index => $publication)
+                    @foreach($chunk as $index => $publication)
                         @php
                             $authors = $publication->researchers->sortBy(fn($r) => $r->pivot->author_order ?? 999);
                             $authorsList = $authors->map(fn($r) => trim(implode(' ', array_filter([
@@ -218,7 +227,7 @@
                             <td>
                                 <strong>{{ Str::limit($publication->title, 50) }}</strong>
                                 @if($publication->url)
-                                    <div class="extra-info">🔗 {{ Str::limit($publication->url, 35) }}</div>
+                                    <div class="extra-info">Enlace: {{ Str::limit($publication->url, 35) }}</div>
                                 @endif
                             </td>
                             <td style="text-align: center">{{ $publication->publication_year ?? '—' }}</td>
@@ -234,6 +243,7 @@
                     @endforeach
                 </tbody>
             </table>
+            @endforeach
         </div>
     @endif
 
@@ -245,6 +255,8 @@
         <div class="section-stats">Total: {{ $configurables->count() }} publicaciones</div>
 
         <div class="table-container">
+            {{-- Tablas de 40 filas: DomPDF guarda en memoria el mapa completo de cada tabla. --}}
+            @foreach($configurables->chunk(40) as $chunk)
             <table>
                 <thead>
                     <tr>
@@ -259,7 +271,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($configurables as $index => $publication)
+                    @foreach($chunk as $index => $publication)
                         @php
                             $authors = $publication->researchers->sortBy(fn($r) => $r->pivot->author_order ?? 999);
                             $authorsList = $authors->pluck('full_name')->filter()->implode(', ');
@@ -270,7 +282,7 @@
                             <td>
                                 <strong>{{ Str::limit($publication->title, 50) }}</strong>
                                 @if($publication->url)
-                                    <div class="extra-info">🔗 {{ Str::limit($publication->url, 35) }}</div>
+                                    <div class="extra-info">Enlace: {{ Str::limit($publication->url, 35) }}</div>
                                 @endif
                             </td>
                             <td>{{ $publication->type->type_name }}</td>
@@ -289,6 +301,7 @@
                     @endforeach
                 </tbody>
             </table>
+            @endforeach
         </div>
     @endif
 
