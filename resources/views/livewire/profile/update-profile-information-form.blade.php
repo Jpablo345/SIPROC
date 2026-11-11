@@ -76,12 +76,12 @@ new class extends Component
                 id="name" 
                 name="name" 
                 type="text" 
-                class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-800 shadow-sm focus:border-red-600 focus:ring focus:ring-red-200 focus:ring-opacity-50 p-2.5" 
+                class="mt-1 block w-full field" 
                 required 
                 autofocus 
                 autocomplete="name" 
             />
-            <x-input-error class="mt-2 text-red-600 text-sm" :messages="$errors->get('name')" />
+            <x-input-error class="mt-2 text-siproc-red text-sm" :messages="$errors->get('name')" />
         </div>
 
         <div>
@@ -98,7 +98,7 @@ new class extends Component
                 disabled
                 autocomplete="username"
             />
-            <x-input-error class="mt-2 text-red-600 text-sm" :messages="$errors->get('email')" />
+            <x-input-error class="mt-2 text-siproc-red text-sm" :messages="$errors->get('email')" />
 
             @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
                 <div class="mt-3 p-3 bg-yellow-50 rounded-md border border-yellow-200">
@@ -122,7 +122,7 @@ new class extends Component
         <div class="flex items-center gap-4 pt-2">
             <button 
                 type="submit" 
-                class="px-5 py-2.5 bg-red-700 hover:bg-red-800 text-white font-medium text-sm rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                class="px-5 py-2.5 bg-siproc-red-dark hover:bg-siproc-red-dark text-white font-medium text-sm rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-siproc-red focus:ring-offset-2"
             >
                 {{ __('Guardar Cambios') }}
             </button>

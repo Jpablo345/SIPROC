@@ -50,4 +50,15 @@ class PublicationType extends Model
     {
         return Str::lower(Str::ascii(trim($name)));
     }
+
+    /**
+     * Id de un tipo por su nombre, sin distinguir mayúsculas ("articulo", "libro").
+     * Lo usan las pantallas de Tipología para asignar el tipo del sistema que les corresponde.
+     */
+    public static function idByName(string $name): ?int
+    {
+        return static::query()
+            ->whereRaw('lower(type_name) = ?', [Str::lower($name)])
+            ->value('type_id');
+    }
 }

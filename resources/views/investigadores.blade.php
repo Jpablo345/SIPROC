@@ -1,8 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
         <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-[#9c1c1c]">Seccion</p>
-            <h2 class="text-2xl font-semibold text-[#2b2323]">Investigadores</h2>
+            <p class="page-eyebrow">Sección</p>
+            <h2 class="page-title">Investigadores</h2>
         </div>
     </x-slot>
 
