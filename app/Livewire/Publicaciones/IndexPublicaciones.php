@@ -16,6 +16,12 @@ class IndexPublicaciones extends Component
 {
     use WithPagination;
 
+    /**
+     * Máximo de publicaciones por PDF. DomPDF tarda unos 6 s y usa unos 85 MB con 300 filas;
+     * con 500 ya roza el memory_limit por defecto de PHP (128 MB). Para más, Excel.
+     */
+    public const PDF_MAX_ROWS = 300;
+
     // Filtros existentes
     public string $search = '';
 
@@ -102,6 +108,7 @@ class IndexPublicaciones extends Component
         $publication = Publication::findOrFail($publicationId);
         $this->authorize('delete', $publication);
         $publication->delete();
+        $this->dispatch('notify', type: 'success', message: 'Publicación eliminada.');
         $this->resetPage();
     }
 
@@ -150,7 +157,20 @@ class IndexPublicaciones extends Component
     {
         $this->authorize('viewAny', Publication::class);
 
-        $publications = $this->getPublicationsQueryProperty()->get();
+        $query = $this->getPublicationsQueryProperty();
+        $total = (clone $query)->reorder()->count();
+
+        if ($total > self::PDF_MAX_ROWS) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                message: 'El PDF admite hasta ' . self::PDF_MAX_ROWS . " publicaciones y los filtros actuales dejan {$total}. Filtra un poco más o usa Exportar a Excel.",
+            );
+
+            return null;
+        }
+
+        $publications = $query->get();
 
         $pdf = Pdf::loadView('exports.publications-pdf', compact('publications'))
             ->setPaper('a4', 'landscape');

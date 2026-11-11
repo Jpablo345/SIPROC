@@ -1,13 +1,13 @@
 <div class="space-y-2">
-    <x-input-label :value="$label" class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+    <x-input-label :value="$label" class="form-label" />
 
     @if($selectedId)
-        <div class="flex items-center justify-between rounded-xl border border-[#f0dede] bg-white/60 px-4 py-3">
+        <div class="flex items-center justify-between rounded-xl border border-siproc-line bg-white/60 px-4 py-3">
             <div>
-                <span class="font-medium text-[#2b2323]">{{ $selectedName }}</span>
+                <span class="font-medium text-siproc-ink">{{ $selectedName }}</span>
             </div>
             <button type="button" wire:click="resetear"
-                class="rounded-full bg-[#f9dede]/60 p-1.5 text-[#9c1c1c] hover:bg-[#f9dede] transition-colors"
+                class="rounded-full bg-siproc-rose/60 p-1.5 text-siproc-red hover:bg-siproc-rose transition-colors"
                 title="Cambiar institución">
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -18,21 +18,21 @@
         <div class="relative">
             <div class="flex gap-2">
                 <div class="flex-1">
-                    <x-text-input wire:model.live="search" type="search" class="block w-full"
+                    <x-text-input wire:model.live.debounce.300ms="search" type="search" class="block w-full"
                         placeholder="Buscar institución por nombre, ciudad o país..." />
                 </div>
                 <button type="button" wire:click="openModal"
-                    class="rounded-full bg-[#9c1c1c] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#7a1515] whitespace-nowrap transition-colors">
+                    class="btn btn-primary whitespace-nowrap transition-colors">
                     + Nueva
                 </button>
             </div>
 
             @if (!empty($results))
                 <div
-                    class="absolute z-30 mt-2 w-full max-h-60 overflow-y-auto rounded-xl border border-[#f0dede] bg-white p-2 shadow-lg divide-y divide-slate-100">
+                    class="absolute z-30 mt-2 w-full max-h-60 overflow-y-auto rounded-xl border border-siproc-line bg-white p-2 shadow-lg divide-y divide-slate-100">
                     @foreach ($results as $inst)
                         <button type="button" wire:click="select({{ $inst['id'] }})"
-                            class="w-full rounded-lg px-3 py-2 text-left hover:bg-[#fff7f7] transition-colors">
+                            class="w-full rounded-lg px-3 py-2 text-left hover:bg-siproc-blush transition-colors">
                             <div class="text-sm font-semibold text-slate-700">{{ $inst['name'] }}</div>
                             <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
                                 @if($inst['type'])
@@ -59,7 +59,7 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
                 <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-                    <h3 class="text-lg font-semibold text-[#2b2323]">Nueva Institución</h3>
+                    <h3 class="section-title">Nueva Institución</h3>
                     <button type="button" wire:click="$set('showModal', false)"
                         class="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,7 +80,7 @@
                     <div>
                         <x-input-label value="Tipo de institución" class="text-xs font-semibold" />
                         <select wire:model="modal_institution_type"
-                            class="mt-1 w-full rounded-md border-red-200 bg-white text-zinc-900 shadow-sm focus:border-red-600 focus:ring-red-600">
+                            class="mt-1 w-full field">
                             <option value="">Seleccionar tipo...</option>
                             <option value="Publica">Publica</option>
                             <option value="Privada">Privada</option>
@@ -126,11 +126,11 @@
 
                 <div class="mt-6 flex justify-end gap-2 border-t border-slate-200 pt-4">
                     <button type="button" wire:click="$set('showModal', false)"
-                        class="rounded-full border border-[#9c1c1c]/30 px-4 py-2 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3] transition-colors">
+                        class="btn btn-outline transition-colors">
                         Cancelar
                     </button>
                     <button type="button" wire:click="createInstitution"
-                        class="rounded-full bg-[#9c1c1c] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#7a1515] transition-colors">
+                        class="btn btn-primary transition-colors">
                         Crear institución
                     </button>
                 </div>

@@ -4,6 +4,7 @@ namespace App\Livewire\Publicaciones;
 
 use App\Actions\Publicaciones\SavePublicationAction;
 use App\Livewire\Concerns\HandlesDynamicFields;
+use App\Livewire\Concerns\SearchesJournals;
 use App\Livewire\Concerns\ValidatesPublication;
 use App\Livewire\Forms\ResearcherForm;
 use App\Models\BookType;
@@ -18,7 +19,7 @@ use Livewire\Component;
 
 class FormularioPublicacion extends Component
 {
-    use ValidatesPublication, HandlesDynamicFields;
+    use ValidatesPublication, HandlesDynamicFields, SearchesJournals;
 
     public ?int $publicationId = null;
 
@@ -83,11 +84,6 @@ class FormularioPublicacion extends Component
         $this->buscarInvestigador();
     }
 
-    public function updatedJournalSearch(): void
-    {
-        $this->buscarRevista();
-    }
-
     public function buscarInvestigador(): void
     {
         $term = trim($this->authorSearch);
@@ -105,45 +101,6 @@ class FormularioPublicacion extends Component
             ->get()
             ->map(fn (Researcher $researcher) => $researcher->toOption())
             ->toArray();
-    }
-
-    public function buscarRevista(): void
-    {
-        $term = trim($this->journalSearch);
-
-        if ($term === '') {
-            $this->journalResults = [];
-            return;
-        }
-
-        $like = '%' . $term . '%';
-
-        $this->journalResults = Journal::query()
-            ->where('journal_issn', 'ilike', $like)
-            ->orWhere('journal_name', 'ilike', $like)
-            ->orderBy('journal_name')
-            ->limit(8)
-            ->get(['journal_issn', 'journal_name'])
-            ->map(function (Journal $journal) {
-                return [
-                    'journal_issn' => $journal->journal_issn,
-                    'journal_name' => $journal->journal_name,
-                ];
-            })
-            ->toArray();
-    }
-
-    public function seleccionarRevista(string $journalIssn): void
-    {
-        $journal = Journal::find($journalIssn);
-
-        if (!$journal) {
-            return;
-        }
-
-        $this->journal_issn = $journal->journal_issn;
-        $this->journalSearch = $journal->journal_name . ' (' . $journal->journal_issn . ')';
-        $this->journalResults = [];
     }
 
     public function agregarAutor(string $researcherId): void
@@ -231,7 +188,7 @@ class FormularioPublicacion extends Component
         );
 
         $this->resetForm();
-        session()->flash('status', 'Publicacion guardada.');
+        session()->flash('status', 'Publicación guardada.');
         $this->dispatch('publicacionGuardada');
     }
 
@@ -251,9 +208,7 @@ class FormularioPublicacion extends Component
         if ($publication->article) {
             $this->journal_issn = $publication->article->journal_issn;
             $this->doi = $publication->article->doi;
-            $this->journalSearch = $publication->article->journal
-                ? $publication->article->journal->journal_name . ' (' . $publication->article->journal->journal_issn . ')'
-                : $publication->article->journal_issn;
+            $this->journalSearch = self::journalLabel($publication->article->journal, $publication->article->journal_issn);
         }
 
         if ($publication->book) {
@@ -314,14 +269,14 @@ class FormularioPublicacion extends Component
         return [
             ...$this->publicationMessages(),
             'book_isbn.unique' => 'Este ISBN ya está registrado en otro libro.',
-            'type_id.required' => 'Selecciona el tipo de publicacion.',
-            'type_id.exists' => 'El tipo de publicacion no es valido.',
-            'journal_issn.required' => 'Selecciona la revista del articulo.',
+            'type_id.required' => 'Selecciona el tipo de publicación.',
+            'type_id.exists' => 'El tipo de publicación no es válido.',
+            'journal_issn.required' => 'Selecciona la revista del artículo.',
             'journal_issn.exists' => 'La revista seleccionada no existe.',
             'doi.unique' => 'Este DOI ya está registrado en otra publicación.',
             'book_isbn.required' => 'El ISBN es obligatorio para libros.',
             'book_type_id.required' => 'Selecciona el tipo de libro.',
-            'book_type_id.exists' => 'El tipo de libro no es valido.',
+            'book_type_id.exists' => 'El tipo de libro no es válido.',
             ...$this->dynamicValidation($this->publicationId)['messages'],
         ];
     }

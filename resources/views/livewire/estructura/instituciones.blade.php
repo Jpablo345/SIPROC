@@ -119,25 +119,25 @@ new class extends Component {
 }; ?>
 
 <div class="space-y-6">
-    <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
+    <div class="card">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <h3 class="text-lg font-semibold text-[#2b2323]">
+                <h3 class="section-title">
                     {{ $editingId ? 'Editar institución' : 'Nueva institución' }}
                 </h3>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
+                <p class="eyebrow">
                     Catálogo base para grupos y eventos
                 </p>
             </div>
             <div class="flex flex-wrap gap-2">
                 @if ($editingId)
                     <button type="button" wire:click="cancelEdit"
-                        class="rounded-full border border-[#9c1c1c]/30 px-4 py-2 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                        class="btn btn-outline">
                         Cancelar
                     </button>
                 @endif
-                <button type="button" wire:click="save"
-                    class="rounded-full bg-[#9c1c1c] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#7a1515]">
+                <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save"
+                    class="btn btn-primary"><x-spinner wire:loading wire:target="save" />
                     {{ $editingId ? 'Guardar cambios' : 'Crear institución' }}
                 </button>
             </div>
@@ -146,14 +146,14 @@ new class extends Component {
         <div class="mt-6 grid gap-4 md:grid-cols-2">
             <div>
                 <x-input-label for="institution_name" :value="'Nombre'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                    class="form-label" />
                 <x-text-input id="institution_name" wire:model="institution_name" type="text"
                     class="mt-2 block w-full" />
                 <x-input-error :messages="$errors->get('institution_name')" class="mt-2" />
             </div>
             <div>
                 <x-input-label for="institution_type" :value="'Tipo'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                    class="form-label" />
                 <x-text-input id="institution_type" wire:model="institution_type" type="text"
                     class="mt-2 block w-full" />
                 <x-input-error :messages="$errors->get('institution_type')" class="mt-2" />
@@ -161,7 +161,7 @@ new class extends Component {
 
             <div>
                 <x-input-label for="country" :value="'País'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                    class="form-label" />
 
                 @php
                     $paises = config('paises');
@@ -186,13 +186,13 @@ new class extends Component {
 
             <div>
                 <x-input-label for="city" :value="'Ciudad'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                    class="form-label" />
                 <x-text-input id="city" wire:model="city" type="text" class="mt-2 block w-full" />
                 <x-input-error :messages="$errors->get('city')" class="mt-2" />
             </div>
             <div class="md:col-span-2">
                 <x-input-label for="website" :value="'Sitio web'"
-                    class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600" />
+                    class="form-label" />
                 <x-text-input id="website" wire:model="website" type="url" placeholder="https://"
                     class="mt-2 block w-full" />
                 <x-input-error :messages="$errors->get('website')" class="mt-2" />
@@ -200,29 +200,25 @@ new class extends Component {
         </div>
     </div>
 
-    <div class="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm">
+    <div class="card">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h3 class="text-lg font-semibold text-[#2b2323]">Instituciones registradas</h3>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#9c1c1c]">
+                <h3 class="section-title">Instituciones registradas</h3>
+                <p class="eyebrow">
                     {{ $this->institutions->total() }} registros
                 </p>
             </div>
             <div class="w-full sm:w-72">
-                <x-text-input wire:model.live="search" type="search" placeholder="Buscar por nombre, ciudad o tipo"
+                <x-text-input wire:model.live.debounce.300ms="search" type="search" placeholder="Buscar por nombre, ciudad o tipo"
                     class="w-full" />
             </div>
         </div>
 
-        @if (session('status'))
-            <div class="mt-4 rounded-xl bg-[#f7e2d2] px-4 py-3 text-xs font-semibold text-[#7a1515]">
-                {{ session('status') }}
-            </div>
-        @endif
+        <x-flash-status />
 
-        <div class="mt-6 overflow-hidden rounded-2xl border border-[#f0dede]">
-            <table class="min-w-full divide-y divide-[#f0dede] text-sm">
-                <thead class="bg-[#fff7f7] text-left text-xs font-semibold uppercase tracking-[0.2em] text-[#7a1515]">
+        <div class="mt-6 table-wrap" wire:loading.delay.class="opacity-50">
+            <table class="data-table">
+                <thead class="table-head">
                     <tr>
                         <th class="px-4 py-3">Nombre</th>
                         <th class="px-4 py-3">País</th>
@@ -232,17 +228,17 @@ new class extends Component {
                         <th class="px-4 py-3 text-right">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[#f0dede] bg-white">
+                <tbody class="table-body">
                     @forelse ($this->institutions as $institution)
-                        <tr wire:key="institution-{{ $institution->institution_id }}" class="hover:bg-[#fff7f7]">
-                            <td class="px-4 py-3 font-semibold text-[#2b2323]">{{ $institution->institution_name }}</td>
+                        <tr wire:key="institution-{{ $institution->institution_id }}" class="hover:bg-siproc-blush">
+                            <td class="px-4 py-3 font-semibold text-siproc-ink">{{ $institution->institution_name }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $institution->country ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $institution->city ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $institution->institution_type ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">
                                 @if ($institution->website)
                                     <a href="{{ $institution->website }}" target="_blank" rel="noreferrer"
-                                        class="text-[#9c1c1c] hover:underline">
+                                        class="text-siproc-red hover:underline">
                                         {{ $institution->website }}
                                     </a>
                                 @else
@@ -252,12 +248,11 @@ new class extends Component {
                             <td class="px-4 py-3 text-right">
                                 <div class="flex justify-end gap-2">
                                     <button type="button" wire:click="edit({{ $institution->institution_id }})"
-                                        class="rounded-full border border-[#9c1c1c]/30 px-3 py-1 text-xs font-semibold text-[#7a1515] hover:bg-[#f2d3d3]">
+                                        class="btn btn-sm btn-outline">
                                         Editar
                                     </button>
-                                    <button type="button" wire:click="delete({{ $institution->institution_id }})"
-                                        onclick="confirm('¿Seguro que deseas eliminar esta institución?') || event.stopImmediatePropagation()"
-                                        class="rounded-full border border-[#d77a7a]/40 px-3 py-1 text-xs font-semibold text-[#9c1c1c] hover:bg-[#f9dede]">
+                                    <button type="button" x-on:click="$dispatch('confirmar', { message: '¿Seguro que deseas eliminar esta institución?', action: () => $wire.delete({{ $institution->institution_id }}) })"
+                                        class="btn btn-sm btn-danger">
                                         Eliminar
                                     </button>
                                 </div>
@@ -265,7 +260,7 @@ new class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-6 text-center text-sm text-slate-500">
+                            <td colspan="6" class="table-empty">
                                 No hay instituciones registradas todavía.
                             </td>
                         </tr>
