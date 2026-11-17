@@ -9,3 +9,7 @@
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
+
+# Windows: los .bat necesitan CRLF y los .ps1 conservan su BOM
+*.bat text eol=crlf
+*.ps1 text eol=crlf

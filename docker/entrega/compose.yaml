@@ -1,0 +1,97 @@
+# SIPROC en el equipo de la administradora (modo producción).
+#
+# Usa la imagen siproc-app que se carga desde siproc-app.tar; no necesita el código del proyecto.
+# Los scripts "Iniciar SIPROC.bat", "Detener SIPROC.bat" y "Respaldar datos.bat" usan este archivo.
+# La configuración (claves, correo) está en el archivo .env de esta misma carpeta.
+
+name: siproc-produccion
+
+x-laravel-env: &laravel-env
+  APP_ENV: production
+  APP_DEBUG: "false"
+  DB_CONNECTION: pgsql
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  CACHE_STORE: redis
+  SESSION_DRIVER: redis
+  QUEUE_CONNECTION: redis
+  LOG_CHANNEL: stderr
+
+x-laravel: &laravel
+  image: siproc-app:latest
+  pull_policy: never
+  env_file: .env
+  restart: unless-stopped
+  volumes:
+    - archivos:/app/storage/app
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  app:
+    <<: *laravel
+    environment:
+      <<: *laravel-env
+      RUN_MIGRATIONS: "true"
+    ports:
+      # Para que otros equipos de la red entren con la IP de este PC.
+      # Para permitir solo este equipo, cambia la línea por "127.0.0.1:${APP_PORT:-8000}:80".
+      - "${APP_PORT:-8000}:80"
+
+  queue:
+    <<: *laravel
+    environment: *laravel-env
+    command: ["php", "artisan", "queue:work", "--tries=3", "--timeout=120", "--sleep=3"]
+    healthcheck:
+      disable: true
+    depends_on:
+      app:
+        condition: service_healthy
+
+  scheduler:
+    <<: *laravel
+    environment: *laravel-env
+    command: ["php", "artisan", "schedule:work"]
+    healthcheck:
+      disable: true
+    depends_on:
+      app:
+        condition: service_healthy
+
+  # La base de datos y Redis no exponen puertos: solo los usa la app.
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-siproc}
+      POSTGRES_USER: ${DB_USERNAME:-siproc}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el archivo .env}
+    volumes:
+      - basedatos:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  basedatos:
+  redis:
+  archivos:
