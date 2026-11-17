@@ -23,3 +23,4 @@ composer.phar
 *.log
 Dockerfile
 compose.yaml
+dist
