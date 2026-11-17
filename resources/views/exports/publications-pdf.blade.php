@@ -8,17 +8,17 @@
         body {
             font-family: 'Helvetica', sans-serif;
             font-size: 10px;
-            color: #2b2323;
+            color: #111827;
             margin: 15px;
             line-height: 1.4;
         }
 
         .header {
-            color: #9c1c1c;
+            color: #D21116;
             font-size: 20px;
             font-weight: bold;
             margin-bottom: 5px;
-            border-bottom: 2px solid #9c1c1c;
+            border-bottom: 2px solid #D21116;
             padding-bottom: 8px;
         }
 
@@ -31,11 +31,11 @@
         .section-title {
             font-size: 14px;
             font-weight: bold;
-            color: #9c1c1c;
+            color: #D21116;
             margin-top: 20px;
             margin-bottom: 10px;
             padding-left: 5px;
-            border-left: 4px solid #9c1c1c;
+            border-left: 4px solid #D21116;
         }
 
         .section-stats {
@@ -53,10 +53,10 @@
         }
 
         th {
-            background-color: #fff7f7;
-            color: #7a1515;
+            background-color: #F3F4F6;
+            color: #374151;
             font-weight: bold;
-            border: 1px solid #f0dede;
+            border: 1px solid #E5E7EB;
             padding: 6px 4px;
             text-align: left;
             font-size: 7px;
@@ -64,7 +64,7 @@
         }
 
         td {
-            border: 1px solid #f0dede;
+            border: 1px solid #E5E7EB;
             padding: 5px 4px;
             vertical-align: top;
         }
@@ -85,7 +85,7 @@
             font-size: 7px;
             color: #999;
             text-align: center;
-            border-top: 1px solid #f0dede;
+            border-top: 1px solid #E5E7EB;
             padding-top: 8px;
         }
     </style>
@@ -312,7 +312,7 @@
     @endif
 
     <div class="footer">
-        Reporte generado automáticamente por SIPROC - Sistema de Visualización de Investigaciones de Sistemas<br>
+        Reporte generado automáticamente por SIPROC - Sistema de Producción Científica<br>
         Universidad Francisco de Paula Santander - Ocaña
     </div>
 </body>

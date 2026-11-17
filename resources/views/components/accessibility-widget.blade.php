@@ -1,305 +1,187 @@
 {{--
-    Widget de accesibilidad: contraste, tamaño de texto, saturación, enlaces, espaciado, fuente para dislexia,
-    altura de línea y ocultar imágenes. Guarda las preferencias en localStorage y se abre con Ctrl+U.
-    Los estilos de cada opción están en resources/css/app.css (clases .siproc-*).
-    Alpine llama a init() solo una vez por página; el atajo de teclado se registra con x-on y se limpia solo al navegar.
+    Panel de accesibilidad. Se abre con el botón flotante o con Alt+A y se cierra con Escape.
+    Las preferencias se guardan en el navegador y se aplican antes de pintar la página
+    (resources/views/components/theme-script.blade.php). Los estilos están al final de resources/css/app.css.
 --}}
-<div x-data="accesibilidad()" x-on:keydown.window.ctrl.u.prevent="panel = ! panel">
+@php
+    $secciones = [
+        'Lectura' => [
+            ['clave' => 'fuente', 'titulo' => 'Fuente de lectura fácil', 'detalle' => 'Atkinson Hyperlegible, pensada para baja visión.'],
+            ['clave' => 'espaciado', 'titulo' => 'Más espacio entre letras y líneas', 'detalle' => 'Según la pauta WCAG 1.4.12.'],
+            ['clave' => 'guia', 'titulo' => 'Guía de lectura', 'detalle' => 'Una franja sigue al puntero y oscurece el resto.'],
+            ['clave' => 'enlaces', 'titulo' => 'Resaltar enlaces', 'detalle' => 'Subrayados y con fondo.'],
+        ],
+        'Navegación' => [
+            ['clave' => 'foco', 'titulo' => 'Foco del teclado visible', 'detalle' => 'Marco grueso al moverse con Tab.'],
+            ['clave' => 'cursor', 'titulo' => 'Cursor grande', 'detalle' => null],
+            ['clave' => 'movimiento', 'titulo' => 'Reducir movimiento', 'detalle' => 'Quita animaciones y transiciones.'],
+            ['clave' => 'imagenes', 'titulo' => 'Ocultar imágenes', 'detalle' => null],
+        ],
+    ];
+    $segmento = 'flex-1 rounded-md px-2 py-1.5 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-siproc-red';
+@endphp
+
+<div x-data="panelAccesibilidad()" x-on:keydown.window.alt.a.prevent="alternarPanel()"
+    x-on:keydown.escape.window="if (abierto) cerrar()"
+    x-on:siproc-tema.window="tema = $event.detail.preferencia"
+    x-on:mousemove.window="if (estado.guia) guiaY = $event.clientY">
 
     {{-- Botón flotante --}}
-    <button @click="panel = !panel"
-        class="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-siproc-red text-white shadow-xl flex items-center justify-center hover:bg-siproc-red-dark transition-all"
-        aria-label="Menú de accesibilidad">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                d="M12 3a1 1 0 100 2 1 1 0 000-2zm0 0v2m0 4v10m-4-7l4-3 4 3M8 17h8" />
+    <button type="button" x-ref="boton" @click="alternarPanel()"
+        class="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-siproc-red text-white shadow-xl transition hover:bg-siproc-red-dark focus:outline-none focus-visible:ring-4 focus-visible:ring-siproc-red/40"
+        :aria-expanded="abierto" aria-controls="panel-accesibilidad" aria-label="Accesibilidad (Alt+A)" title="Accesibilidad (Alt+A)">
+        <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M10 16.5l2-3l2 3m-2-3v-2l3-1m-6 0l3 1" />
+            <circle cx="12" cy="7.5" r=".6" fill="currentColor" />
         </svg>
+        <span x-cloak x-text="activos" :class="activos > 0 ? 'flex' : 'hidden'"
+            class="absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[11px] font-bold text-siproc-red shadow ring-2 ring-siproc-red"
+            :aria-label="activos + ' ajustes activos'"></span>
     </button>
 
     {{-- Panel --}}
-    <div x-show="panel" x-cloak x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
-        x-transition:leave-end="opacity-0 translate-y-2"
-        class="fixed bottom-20 right-6 z-50 w-72 rounded-2xl shadow-2xl overflow-hidden border border-zinc-200"
-        style="background:#fff; max-height:82vh; overflow-y:auto;">
+    <div id="panel-accesibilidad" x-ref="panel" x-show="abierto" x-cloak role="dialog" aria-modal="false" aria-labelledby="panel-accesibilidad-titulo"
+        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 translate-y-2"
+        class="fixed bottom-20 right-4 z-50 flex max-h-[min(80vh,44rem)] w-[min(23rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-siproc-line bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 sm:right-6">
 
-        {{-- Header rojo --}}
-        <div class="flex items-center justify-between px-4 py-3 bg-siproc-red sticky top-0 z-10">
-            <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                    stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 3a1 1 0 100 2 1 1 0 000-2zm0 0v2m0 4v10m-4-7l4-3 4 3M8 17h8" />
-                </svg>
-                <span class="text-sm font-semibold text-white tracking-wide">Accesibilidad</span>
-                <span class="text-[10px] text-white/50 ml-1">CTRL+U</span>
+        <div class="flex items-start justify-between gap-3 border-b border-siproc-line px-5 py-4 dark:border-gray-800">
+            <div>
+                <h2 id="panel-accesibilidad-titulo" class="font-display text-base font-bold">Accesibilidad</h2>
+                <p class="mt-0.5 text-xs text-slate-500 dark:text-gray-400">Se guarda en este navegador. Atajo: <kbd class="rounded border border-gray-300 px-1 font-sans dark:border-gray-700">Alt</kbd> + <kbd class="rounded border border-gray-300 px-1 font-sans dark:border-gray-700">A</kbd></p>
             </div>
-            <button @click="panel = false"
-                class="text-white/60 hover:text-white text-xl leading-none transition">&times;</button>
+            <button type="button" @click="cerrar()" aria-label="Cerrar panel de accesibilidad"
+                class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-white">
+                <x-icon name="x-mark" class="h-5 w-5" />
+            </button>
         </div>
 
-        <div class="p-4 space-y-4">
+        <div class="scroll-sutil flex-1 space-y-6 overflow-y-auto px-5 py-5 dark:[--scroll:rgb(255_255_255/0.2)]">
+            {{-- Visualización --}}
+            <section aria-labelledby="a11y-visualizacion">
+                <h3 id="a11y-visualizacion" class="form-label">Visualización</h3>
 
-            {{-- CONTRASTE --}}
-            <div>
-                <div class="flex items-center gap-2 mb-2">
-                    <svg class="w-3.5 h-3.5 text-siproc-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 3v18" />
-                    </svg>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-siproc-red">Contraste</p>
+                <div class="mt-3 space-y-4">
+                    <div>
+                        <p id="a11y-tema" class="text-sm font-semibold">Tema</p>
+                        <div class="mt-1.5 flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800" role="radiogroup" aria-labelledby="a11y-tema">
+                            <template x-for="opcion in [['claro', 'Claro'], ['oscuro', 'Oscuro'], ['sistema', 'Automático']]" :key="opcion[0]">
+                                <button type="button" role="radio" :aria-checked="tema === opcion[0]" @click="cambiarTema(opcion[0])"
+                                    class="{{ $segmento }}"
+                                    :class="tema === opcion[0] ? 'bg-white text-siproc-red-dark shadow dark:bg-gray-700 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'"
+                                    x-text="opcion[1]"></button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p id="a11y-texto" class="text-sm font-semibold">Tamaño del texto</p>
+                        <div class="mt-1.5 flex items-center gap-2" role="group" aria-labelledby="a11y-texto">
+                            <button type="button" @click="cambiarTexto(-1)" :disabled="estado.texto === 0" aria-label="Reducir texto"
+                                class="btn btn-outline btn-sm w-11 text-sm">A−</button>
+                            <div class="relative h-2 flex-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700" aria-hidden="true">
+                                <div class="absolute inset-y-0 left-0 rounded-full bg-siproc-red transition-all" :style="`width: ${(estado.texto / 4) * 100}%`"></div>
+                            </div>
+                            <button type="button" @click="cambiarTexto(1)" :disabled="estado.texto === 4" aria-label="Aumentar texto"
+                                class="btn btn-outline btn-sm w-11 text-base">A+</button>
+                            <span class="w-12 text-right text-sm font-semibold tabular-nums" aria-live="polite" x-text="porcentajes[estado.texto] + ' %'"></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p id="a11y-color" class="text-sm font-semibold">Color</p>
+                        <div class="mt-1.5 flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800" role="radiogroup" aria-labelledby="a11y-color">
+                            <template x-for="opcion in [['normal', 'Normal'], ['gris', 'Grises'], ['baja', 'Suave'], ['alta', 'Intenso']]" :key="opcion[0]">
+                                <button type="button" role="radio" :aria-checked="estado.color === opcion[0]" @click="cambiar('color', opcion[0])"
+                                    class="{{ $segmento }}"
+                                    :class="estado.color === opcion[0] ? 'bg-white text-siproc-red-dark shadow dark:bg-gray-700 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'"
+                                    x-text="opcion[1]"></button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <label class="flex cursor-pointer items-start justify-between gap-4">
+                        <span>
+                            <span class="block text-sm font-semibold">Alto contraste</span>
+                            <span class="block text-xs text-slate-500 dark:text-gray-400">Textos y bordes más marcados.</span>
+                        </span>
+                        <x-a11y-switch clave="contraste" />
+                    </label>
                 </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <button @click="setContraste('invertido')"
-                        :class="contraste === 'invertido' ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <svg class="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <circle cx="12" cy="12" r="9" />
-                            <path d="M12 3v18" />
-                        </svg>
-                        Invertido
-                    </button>
-                    <button @click="setContraste('oscuro')"
-                        :class="contraste === 'oscuro' ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <svg class="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
-                        </svg>
-                        Oscuro
-                    </button>
-                    <button @click="setContraste('claro')"
-                        :class="contraste === 'claro' ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <svg class="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <circle cx="12" cy="12" r="4" />
-                            <path
-                                d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-                        </svg>
-                        Claro
-                    </button>
-                </div>
-            </div>
+            </section>
 
-            <div class="border-t border-zinc-100"></div>
+            @foreach ($secciones as $titulo => $opciones)
+                <section aria-labelledby="a11y-{{ \Illuminate\Support\Str::slug($titulo) }}">
+                    <h3 id="a11y-{{ \Illuminate\Support\Str::slug($titulo) }}" class="form-label">{{ $titulo }}</h3>
+                    <div class="mt-3 space-y-3">
+                        @foreach ($opciones as $opcion)
+                            <label class="flex cursor-pointer items-start justify-between gap-4">
+                                <span>
+                                    <span class="block text-sm font-semibold">{{ $opcion['titulo'] }}</span>
+                                    @if ($opcion['detalle'])
+                                        <span class="block text-xs text-slate-500 dark:text-gray-400">{{ $opcion['detalle'] }}</span>
+                                    @endif
+                                </span>
+                                <x-a11y-switch :clave="$opcion['clave']" />
+                            </label>
+                        @endforeach
+                    </div>
+                </section>
+            @endforeach
+        </div>
 
-            {{-- TAMAÑO DE TEXTO --}}
-            <div>
-                <div class="flex items-center gap-2 mb-2">
-                    <svg class="w-3.5 h-3.5 text-siproc-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path d="M4 20h16M8 20V4l8 0M8 12h8" />
-                    </svg>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-siproc-red">Tamaño de texto</p>
-                </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <button @click="setTexto(1)"
-                        :class="texto === 1 ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <span class="text-base font-bold text-zinc-600">A</span>
-                        110%
-                    </button>
-                    <button @click="setTexto(2)"
-                        :class="texto === 2 ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <span class="text-lg font-bold text-zinc-600">A</span>
-                        125%
-                    </button>
-                    <button @click="setTexto(3)"
-                        :class="texto === 3 ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <span class="text-xl font-bold text-zinc-600">A</span>
-                        150%
-                    </button>
-                </div>
-            </div>
-
-            <div class="border-t border-zinc-100"></div>
-
-            {{-- SATURACIÓN --}}
-            <div>
-                <div class="flex items-center gap-2 mb-2">
-                    <svg class="w-3.5 h-3.5 text-siproc-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path d="M12 2v20M2 12h20" />
-                    </svg>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-siproc-red">Saturación</p>
-                </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <button @click="setSaturacion(1)"
-                        :class="saturacion === 1 ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <svg class="w-5 h-5 text-zinc-300" fill="currentColor" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="9" />
-                        </svg>
-                        Baja
-                    </button>
-                    <button @click="setSaturacion(2)"
-                        :class="saturacion === 2 ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <svg class="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <circle cx="12" cy="12" r="9" />
-                        </svg>
-                        Sin color
-                    </button>
-                    <button @click="setSaturacion(3)"
-                        :class="saturacion === 3 ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <svg class="w-5 h-5 text-siproc-red" fill="currentColor" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="9" />
-                        </svg>
-                        Alta
-                    </button>
-                </div>
-            </div>
-
-            <div class="border-t border-zinc-100"></div>
-
-            {{-- OTRAS OPCIONES --}}
-            <div>
-                <div class="flex items-center gap-2 mb-2">
-                    <svg class="w-3.5 h-3.5 text-siproc-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path d="M4 6h16M4 12h16M4 18h7" />
-                    </svg>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-siproc-red">Otras opciones</p>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <button @click="toggleEnlaces()"
-                        :class="enlaces ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <svg class="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-                            <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-                        </svg>
-                        Resaltar enlaces
-                    </button>
-                    <button @click="toggleEspaciado()"
-                        :class="espaciado ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <svg class="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                        Espaciado
-                    </button>
-                    <button @click="toggleDislexia()"
-                        :class="dislexia ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <svg class="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M4 7V4h16v3M9 20h6M12 4v16" />
-                        </svg>
-                        Dislexia
-                    </button>
-                    <button @click="toggleLineHeight()"
-                        :class="lineHeight ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <svg class="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                        Altura línea
-                    </button>
-                    <button @click="toggleImagenes()"
-                        :class="imagenes ? 'ring-2 ring-siproc-red bg-siproc-blush' : 'bg-zinc-50 hover:bg-zinc-100'"
-                        class="col-span-2 flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 p-3 text-[11px] text-zinc-700 transition">
-                        <svg class="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M3 3l18 18M21 15l-5-5-4 4-2-2-4 4" />
-                        </svg>
-                        Ocultar imágenes
-                    </button>
-                </div>
-            </div>
-
-            {{-- RESTABLECER --}}
-            <button @click="resetAll()"
-                class="w-full py-2.5 bg-siproc-red hover:bg-siproc-red-dark text-white text-xs font-semibold rounded-xl transition">
-                Restablecer todo
-            </button>
-
-            <p class="text-center text-[10px] text-zinc-300 pb-1">SIPROC — UFPSO</p>
-
+        <div class="flex items-center justify-between gap-3 border-t border-siproc-line px-5 py-3 dark:border-gray-800">
+            <span class="text-xs text-slate-500 dark:text-gray-400" x-text="activos === 0 ? 'Sin ajustes activos' : (activos === 1 ? '1 ajuste activo' : activos + ' ajustes activos')"></span>
+            <button type="button" @click="restablecer()" :disabled="activos === 0" class="btn btn-outline btn-sm">Restablecer</button>
         </div>
     </div>
+
+    {{-- Guía de lectura: oscurece arriba y abajo de una franja que sigue al puntero --}}
+    <template x-if="estado.guia">
+        <div aria-hidden="true">
+            <div class="pointer-events-none fixed inset-x-0 top-0 z-[45] bg-black/45" :style="`height: ${Math.max(guiaY - 45, 0)}px`"></div>
+            <div class="pointer-events-none fixed inset-x-0 bottom-0 z-[45] bg-black/45" :style="`top: ${guiaY + 45}px`"></div>
+        </div>
+    </template>
 </div>
 
 <script>
-    function accesibilidad() {
+    function panelAccesibilidad() {
         return {
-            panel: false,
-            contraste: null,
-            texto: 0,
-            saturacion: 0,
-            enlaces: false,
-            espaciado: false,
-            dislexia: false,
-            lineHeight: false,
-            imagenes: false,
+            abierto: false,
+            estado: window.siprocA11y.leer(),
+            tema: window.siprocTema.preferencia(),
+            guiaY: window.innerHeight / 2,
+            porcentajes: [100, 112, 125, 137, 150],
 
-            init() {
-                const saved = JSON.parse(localStorage.getItem('siproc-accesibilidad') || '{}');
-                this.contraste = saved.contraste ?? null;
-                this.texto = saved.texto ?? 0;
-                this.saturacion = saved.saturacion ?? 0;
-                this.enlaces = saved.enlaces ?? false;
-                this.espaciado = saved.espaciado ?? false;
-                this.dislexia = saved.dislexia ?? false;
-                this.lineHeight = saved.lineHeight ?? false;
-                this.imagenes = saved.imagenes ?? false;
-                this.aplicarTodo();
+            get activos() {
+                const base = window.siprocA11y.predeterminado();
+                return Object.keys(base).filter((clave) => this.estado[clave] !== base[clave]).length;
             },
 
-            guardar() {
-                localStorage.setItem('siproc-accesibilidad', JSON.stringify({
-                    contraste: this.contraste,
-                    texto: this.texto,
-                    saturacion: this.saturacion,
-                    enlaces: this.enlaces,
-                    espaciado: this.espaciado,
-                    dislexia: this.dislexia,
-                    lineHeight: this.lineHeight,
-                    imagenes: this.imagenes,
-                }));
+            alternarPanel() { this.abierto ? this.cerrar() : this.abrir(); },
+            abrir() {
+                this.abierto = true;
+                this.$nextTick(() => this.$refs.panel.querySelector('button, [role=switch]')?.focus());
+            },
+            cerrar() {
+                this.abierto = false;
+                this.$nextTick(() => this.$refs.boton.focus());
             },
 
-            aplicarTodo() {
-                ['siproc-contraste-invertido', 'siproc-contraste-oscuro', 'siproc-contraste-claro',
-                    'siproc-texto-1', 'siproc-texto-2', 'siproc-texto-3',
-                    'siproc-saturacion-1', 'siproc-saturacion-2', 'siproc-saturacion-3',
-                    'siproc-enlaces', 'siproc-espaciado', 'siproc-dislexia',
-                    'siproc-line-height', 'siproc-sin-imagenes'
-                ].forEach(c => document.body.classList.remove(c));
-                if (this.contraste) document.body.classList.add('siproc-contraste-' + this.contraste);
-                if (this.texto) document.body.classList.add('siproc-texto-' + this.texto);
-                if (this.saturacion) document.body.classList.add('siproc-saturacion-' + this.saturacion);
-                if (this.enlaces) document.body.classList.add('siproc-enlaces');
-                if (this.espaciado) document.body.classList.add('siproc-espaciado');
-                if (this.dislexia) document.body.classList.add('siproc-dislexia');
-                if (this.lineHeight) document.body.classList.add('siproc-line-height');
-                if (this.imagenes) document.body.classList.add('siproc-sin-imagenes');
+            cambiar(clave, valor) {
+                this.estado = { ...this.estado, [clave]: valor };
+                window.siprocA11y.guardar(this.estado);
             },
-
-            setContraste(tipo) {
-                this.contraste = this.contraste === tipo ? null : tipo;
-                this.aplicarTodo(); this.guardar();
+            alternar(clave) { this.cambiar(clave, ! this.estado[clave]); },
+            cambiarTexto(paso) { this.cambiar('texto', Math.min(4, Math.max(0, this.estado.texto + paso))); },
+            cambiarTema(valor) { this.tema = valor; window.siprocTema.establecer(valor); },
+            restablecer() {
+                this.estado = window.siprocA11y.predeterminado();
+                window.siprocA11y.guardar(this.estado);
             },
-            setTexto(nivel) {
-                this.texto = this.texto === nivel ? 0 : nivel;
-                this.aplicarTodo(); this.guardar();
-            },
-            setSaturacion(nivel) {
-                this.saturacion = this.saturacion === nivel ? 0 : nivel;
-                this.aplicarTodo(); this.guardar();
-            },
-            toggleEnlaces() { this.enlaces = !this.enlaces; this.aplicarTodo(); this.guardar(); },
-            toggleEspaciado() { this.espaciado = !this.espaciado; this.aplicarTodo(); this.guardar(); },
-            toggleDislexia() { this.dislexia = !this.dislexia; this.aplicarTodo(); this.guardar(); },
-            toggleLineHeight() { this.lineHeight = !this.lineHeight; this.aplicarTodo(); this.guardar(); },
-            toggleImagenes() { this.imagenes = !this.imagenes; this.aplicarTodo(); this.guardar(); },
-
-            resetAll() {
-                this.contraste = null; this.texto = 0; this.saturacion = 0;
-                this.enlaces = false; this.espaciado = false; this.dislexia = false;
-                this.lineHeight = false; this.imagenes = false;
-                this.aplicarTodo();
-                localStorage.removeItem('siproc-accesibilidad');
-            }
-        }
+        };
     }
 </script>

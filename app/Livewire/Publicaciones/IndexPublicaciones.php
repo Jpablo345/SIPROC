@@ -37,6 +37,18 @@ class IndexPublicaciones extends Component
 
     protected $listeners = ['publicacionGuardada' => 'handleSaved'];
 
+    /** Desde la ficha de una publicación se llega con ?editar=ID para abrir directamente el formulario. */
+    public function mount(): void
+    {
+        $id = request()->integer('editar');
+        $publication = $id ? Publication::find($id) : null;
+
+        if ($publication && auth()->user()?->can('update', $publication)) {
+            $this->editingId = $publication->publication_id;
+            $this->showForm = true;
+        }
+    }
+
     // Actualizar página cuando cambia cualquier filtro
     public function updatedSearch(): void
     {

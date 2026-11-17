@@ -247,84 +247,77 @@ new #[Layout('layouts.guest')]
 }; ?>
 
 <div class="w-full">
-    <div class="flex flex-col items-center mb-8">
-        <div class="w-24 h-24  p-2 shadow-lg ">
-            <img src="{{ asset('img/logoufps.png') }}" alt="UFPS" class="w-full h-auto" />
-        </div>
-        <h2 class="mt-4 text-xl font-black text-white uppercase tracking-tight">
-            Registro Institucional
-        </h2>
-        <div class="h-1 w-10 bg-siproc-red mt-1"></div>
-    </div>
+    <h2 class="font-display text-2xl font-bold">Crear cuenta</h2>
+    <p class="mt-1 text-sm text-gray-500">Regístrate con tu correo institucional. Te enviaremos un código para verificarlo.</p>
 
-    <div class="bg-white p-8 rounded-2xl shadow-2xl border border-siproc-rose">
+    <div class="mt-6">
         @if ($step === 'form')
             <form wire:submit="register" class="space-y-5">
 
-                <div class="grid grid-cols-2 gap-1 p-1 bg-siproc-blush border border-siproc-rose rounded-xl">
+                <div class="grid grid-cols-2 gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1">
                     <button type="button" wire:click="setType('student')"
-                        class="py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all {{ $user_type === 'student' ? 'bg-siproc-red text-white shadow' : 'text-siproc-red-dark hover:bg-siproc-rose' }}">
+                        class="rounded-lg py-2 text-sm font-semibold transition {{ $user_type === 'student' ? 'bg-siproc-red text-white shadow' : 'text-gray-600 hover:bg-white' }}">
                         Estudiante
                     </button>
                     <button type="button" wire:click="setType('teacher')"
-                        class="py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all {{ $user_type === 'teacher' ? 'bg-siproc-red text-white shadow' : 'text-siproc-red-dark hover:bg-siproc-rose' }}">
+                        class="rounded-lg py-2 text-sm font-semibold transition {{ $user_type === 'teacher' ? 'bg-siproc-red text-white shadow' : 'text-gray-600 hover:bg-white' }}">
                         Docente / Investigador
                     </button>
                 </div>
 
                 <div>
-                    <x-input-label for="name" :value="__('Nombre Completo')" class="font-bold text-zinc-700" />
+                    <x-input-label for="name" :value="__('Nombre Completo')" class="font-semibold text-gray-700" />
                     <x-text-input wire:model="name" id="name"
-                        class="block mt-1 w-full border-siproc-rose bg-white text-zinc-900 focus:border-siproc-red focus:ring-siproc-red"
+                        class="mt-1 block w-full"
                         type="text" name="name" required autofocus />
-                    <x-input-error :messages="$errors->get('name')" class="mt-1 text-siproc-red" />
+                    <x-input-error :messages="$errors->get('name')" class="mt-1" />
                 </div>
 
                 <div>
-                    <x-input-label for="email" :value="__('Correo Electrónico')" class="font-bold text-zinc-700" />
+                    <x-input-label for="email" :value="__('Correo Electrónico')" class="font-semibold text-gray-700" />
                     <x-text-input wire:model="email" id="email"
-                        class="block mt-1 w-full border-siproc-rose bg-white text-zinc-900 focus:border-siproc-red focus:ring-siproc-red"
+                        class="mt-1 block w-full"
                         type="email" name="email" required />
-                    <x-input-error :messages="$errors->get('email')" class="mt-1 text-siproc-red" />
+                    <x-input-error :messages="$errors->get('email')" class="mt-1" />
                 </div>
 
                 <div>
-                    <x-input-label for="code" :value="$user_type === 'student' ? __('Código de Estudiante') : __('Código de Docente')" class="font-bold text-zinc-700" />
+                    <x-input-label for="code" :value="$user_type === 'student' ? __('Código de estudiante') : __('Código de docente')" class="font-semibold text-gray-700" />
                     <x-text-input wire:model="code" id="code"
-                        class="block mt-1 w-full border-siproc-rose bg-white text-zinc-900 focus:border-siproc-red focus:ring-siproc-red"
+                        class="mt-1 block w-full"
                         type="text" name="code" inputmode="numeric" pattern="[0-9]*" :maxlength="$user_type === 'student' ? 7 : null" x-on:input="$el.value = $el.value.replace(/\D/g, '')" required />
                     @if ($user_type === 'student')
-                        <p class="mt-1 text-xs text-zinc-500">Mínimo 7 dígitos</p>
+                        <p class="mt-1 text-xs text-gray-500">7 dígitos</p>
                     @endif
-                    <x-input-error :messages="$errors->get('code')" class="mt-1 text-siproc-red" />
+                    <x-input-error :messages="$errors->get('code')" class="mt-1" />
                 </div>
 
                 <div>
-                    <x-input-label for="password" :value="__('Contraseña')" class="font-bold text-zinc-700" />
+                    <x-input-label for="password" :value="__('Contraseña')" class="font-semibold text-gray-700" />
                     <x-text-input wire:model="password" id="password"
-                        class="block mt-1 w-full border-siproc-rose bg-white text-zinc-900 focus:border-siproc-red focus:ring-siproc-red"
+                        class="mt-1 block w-full"
                         type="password" name="password" required />
-                    <x-input-error :messages="$errors->get('password')" class="mt-1 text-siproc-red" />
+                    <x-input-error :messages="$errors->get('password')" class="mt-1" />
                 </div>
 
                 <div>
                     <x-input-label for="password_confirmation" :value="__('Confirmar Contraseña')"
-                        class="font-bold text-zinc-700" />
+                        class="font-semibold text-gray-700" />
                     <x-text-input wire:model="password_confirmation" id="password_confirmation"
-                        class="block mt-1 w-full border-siproc-rose bg-white text-zinc-900 focus:border-siproc-red focus:ring-siproc-red"
+                        class="mt-1 block w-full"
                         type="password" name="password_confirmation" required />
-                    <x-input-error :messages="$errors->get('password_confirmation')" class="mt-1 text-siproc-red" />
+                    <x-input-error :messages="$errors->get('password_confirmation')" class="mt-1" />
                 </div>
 
                 <div class="flex flex-col gap-3 pt-4">
                     <button type="submit" wire:loading.attr="disabled" wire:target="register"
-                        class="w-full bg-siproc-red hover:bg-siproc-red-dark disabled:opacity-60 text-white font-black py-3 rounded-lg shadow-lg shadow-red-900/50 transition-all uppercase text-sm tracking-widest">
-                        <span wire:loading.remove wire:target="register">{{ __('Crear Cuenta') }}</span>
+                        class="btn btn-primary w-full py-3 text-base">
+                        <span wire:loading.remove wire:target="register">{{ __('Crear cuenta') }}</span>
                         <span wire:loading wire:target="register">Enviando código...</span>
                     </button>
 
                     <div class="text-center pt-2">
-                        <a class="text-xs font-bold text-siproc-red-dark hover:text-siproc-red transition-colors uppercase tracking-widest"
+                        <a class="text-sm font-semibold text-siproc-red-dark hover:underline"
                             href="{{ route('login') }}" wire:navigate>
                             {{ __('¿Ya tienes cuenta? Inicia sesión') }}
                         </a>
@@ -334,10 +327,10 @@ new #[Layout('layouts.guest')]
         @else
             <form wire:submit="verifyOtp" class="space-y-5">
                 <div class="text-center">
-                    <h3 class="text-lg font-black text-zinc-800 uppercase tracking-tight">Verifica tu correo</h3>
-                    <p class="mt-2 text-sm text-zinc-600">
+                    <h3 class="font-display text-lg font-bold">Verifica tu correo</h3>
+                    <p class="mt-2 text-sm text-gray-600">
                         Enviamos un código de verificación (OTP) a
-                        <span class="font-bold text-zinc-800">{{ $email }}</span>.
+                        <span class="font-bold text-gray-900">{{ $email }}</span>.
                         Ingrésalo para confirmar que el correo te pertenece.
                     </p>
                 </div>
@@ -349,39 +342,33 @@ new #[Layout('layouts.guest')]
                 @endif
 
                 <div>
-                    <x-input-label for="otp" :value="__('Código de verificación')" class="font-bold text-zinc-700" />
+                    <x-input-label for="otp" :value="__('Código de verificación')" class="font-semibold text-gray-700" />
                     <x-text-input wire:model="otp" id="otp"
-                        class="block mt-1 w-full text-center text-2xl tracking-[0.5em] border-siproc-rose bg-white text-zinc-900 focus:border-siproc-red focus:ring-siproc-red"
+                        class="mt-1 block w-full text-center text-2xl tracking-[0.5em]"
                         type="text" name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6"
                         x-on:input="$el.value = $el.value.replace(/\D/g, '')" required autofocus />
-                    <x-input-error :messages="$errors->get('otp')" class="mt-1 text-siproc-red" />
+                    <x-input-error :messages="$errors->get('otp')" class="mt-1" />
                 </div>
 
                 <div class="flex flex-col gap-3 pt-2">
                     <button type="submit" wire:loading.attr="disabled" wire:target="verifyOtp"
-                        class="w-full bg-siproc-red hover:bg-siproc-red-dark disabled:opacity-60 text-white font-black py-3 rounded-lg shadow-lg shadow-red-900/50 transition-all uppercase text-sm tracking-widest">
+                        class="btn btn-primary w-full py-3 text-base">
                         <span wire:loading.remove wire:target="verifyOtp">Verificar y crear cuenta</span>
                         <span wire:loading wire:target="verifyOtp">Verificando...</span>
                     </button>
 
                     <div class="flex items-center justify-between pt-2">
                         <button type="button" wire:click="resend"
-                            class="text-xs font-bold text-siproc-red-dark hover:text-siproc-red transition-colors uppercase tracking-widest">
+                            class="text-sm font-semibold text-siproc-red-dark hover:underline">
                             Reenviar código
                         </button>
                         <button type="button" wire:click="backToForm"
-                            class="text-xs font-bold text-zinc-500 hover:text-zinc-700 transition-colors uppercase tracking-widest">
+                            class="text-sm font-semibold text-gray-500 hover:text-gray-700">
                             Cambiar correo
                         </button>
                     </div>
                 </div>
             </form>
         @endif
-    </div>
-
-    <div class="mt-8 text-center">
-        <p class="text-[10px] text-white/70 font-bold uppercase tracking-[0.2em]">
-            Universidad Francisco de Paula Santander - Ocaña • 2026
-        </p>
     </div>
 </div>

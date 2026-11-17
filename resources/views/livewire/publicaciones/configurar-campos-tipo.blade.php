@@ -94,9 +94,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="table-empty">
-                                    Este tipo todavía no tiene campos propios. Las publicaciones de este tipo solo pedirán los campos comunes.
-                                </td>
+                                <td colspan="7"><x-empty-state icon="tag" message="Este tipo todavía no tiene campos propios. Las publicaciones de este tipo solo pedirán los campos comunes." /></td>
                             </tr>
                         @endforelse
                     </tbody>
