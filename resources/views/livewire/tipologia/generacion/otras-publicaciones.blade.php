@@ -243,7 +243,7 @@ new class extends Component {
                     @forelse ($this->publications as $publication)
                         <tr wire:key="publication-{{ $publication->publication_id }}" class="hover:bg-siproc-blush">
                             <td class="px-4 py-3 font-semibold text-siproc-ink">
-                                <div>{{ $publication->title }}</div>
+                                <div><a href="{{ route('publicaciones.show', $publication->publication_id) }}" wire:navigate class="hover:text-siproc-red-dark dark:hover:text-red-300">{{ $publication->title }}</a></div>
                                 @if ($publication->url)
                                     <a href="{{ $publication->url }}" target="_blank" rel="noreferrer"
                                         class="text-xs text-siproc-red hover:underline">
@@ -270,9 +270,7 @@ new class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="table-empty">
-                                No hay publicaciones registradas todavía.
-                            </td>
+                            <td colspan="6"><x-empty-state icon="document-text" message="No hay publicaciones registradas todavía." /></td>
                         </tr>
                     @endforelse
                 </tbody>

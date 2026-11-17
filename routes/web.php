@@ -7,13 +7,17 @@ use App\Livewire\Publicaciones\ConfigurarCamposTipo;
 use App\Livewire\Publicaciones\Journals;
 use App\Livewire\Publicaciones\TiposLibro;
 use App\Http\Controllers\GoogleAuthController;
+use App\Livewire\Fichas\FichaGrupo;
+use App\Livewire\Fichas\FichaInvestigador;
+use App\Livewire\Fichas\FichaPublicacion;
 
 Route::redirect('/', '/login');
 
 Route::middleware(['auth', 'verified', 'can:consultar'])->group(function () {
     Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('dashboard');
     Route::view('investigadores', 'investigadores')->name('investigadores');
-    
+    // Fichas de solo lectura (investigador, grupo y publicación)
+    Route::get('investigadores/{researcher}', FichaInvestigador::class)->whereNumber('researcher')->name('investigadores.show');
 
     Route::prefix('tipologia')->name('tipologia.')->group(function () {
         Route::prefix('generacion')->name('generacion.')->group(function () {
@@ -33,6 +37,7 @@ Route::middleware(['auth', 'verified', 'can:consultar'])->group(function () {
     Route::prefix('estructura')->name('estructura.')->group(function () {
         Route::view('grupos-investigacion', 'estructura.grupos-investigacion')->name('grupos');
         Route::view('instituciones', 'estructura.instituciones')->name('instituciones');
+        Route::get('grupos-investigacion/{group}', FichaGrupo::class)->name('grupos.show');
     });
 
     Route::prefix('publicaciones')->name('publicaciones.')->group(function () {
@@ -41,6 +46,7 @@ Route::middleware(['auth', 'verified', 'can:consultar'])->group(function () {
         Route::get('tipos/{type}/campos', ConfigurarCamposTipo::class)->name('tipos.campos');
         Route::get('revistas', Journals::class)->name('journals');
         Route::get('tipos-libro', TiposLibro::class)->name('tipos-libro');
+        Route::get('{publication}', FichaPublicacion::class)->whereNumber('publication')->name('show');
     });
 });
 

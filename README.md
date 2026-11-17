@@ -62,6 +62,18 @@ En ese caso apunta el `.env` a `DB_PORT=5433` y, para el correo, a `MAIL_HOST=12
 
 Los puertos del equipo se cambian en el `.env` con `APP_PORT`, `FORWARD_DB_PORT`, `FORWARD_REDIS_PORT`, `FORWARD_MAILPIT_PORT` y `FORWARD_MAILPIT_DASHBOARD_PORT`.
 
+### Paquete para instalar en otro equipo
+
+Para entregar SIPROC en un computador que no tiene el código (por ejemplo, el de la administradora), con Docker Desktop abierto:
+
+```bash
+powershell -ExecutionPolicy Bypass -File docker\armar-paquete.ps1
+```
+
+Genera `dist\SIPROC` con la imagen (`siproc-app.tar`), un `compose.yaml` de producción, un `.env` con claves nuevas, los scripts `Iniciar SIPROC.bat`, `Detener SIPROC.bat` y `Respaldar datos.bat`, y un `LEEME.txt` para quien la usa. Antes de entregarla completa el correo en ese `.env`. Las plantillas están en `docker/entrega/`.
+
+La primera vez, `Iniciar SIPROC.bat` pide crear la cuenta de administración con `php artisan siproc:crear-admin`, que también sirve fuera de Docker. Para actualizar, vuelve a correr el script y entrega solo el nuevo `siproc-app.tar`; el `.env` de esa instalación no se reemplaza.
+
 ## Tests (SIPROC)
 
 Los tests corren sobre una base de datos PostgreSQL aparte, `siproc_test`, porque las migraciones usan SQL propio de PostgreSQL (CHECK y triggers). Host, usuario y contraseña se toman del `.env`.
@@ -77,7 +89,14 @@ GitHub Actions corre los tests en cada pull request y en cada push a `main` (`.g
 
 ## Estructura de la interfaz
 
+La interfaz sigue el Manual de Identidad Visual UFPSO (M-GC-DMT-002): rojo institucional `#D21116` y su escala secundaria, colores de facultad en las gráficas, Open Sans como fuente y el logo siempre sobre fondo blanco.
+
 - La paleta institucional y la fuente están en `tailwind.config.js`; las piezas que se repiten (`card`, `btn`, `field`, `data-table`…) en `resources/css/app.css`.
+- `config/siproc.php`: estilo del menú lateral (`SIPROC_MENU=rojo`, por defecto, o `claro`) y foto del login (`SIPROC_FOTO_LOGIN`, por defecto `public/img/login-campus.jpg`; si no existe, no se muestra).
+- Modo oscuro: botón de luna en el menú lateral; sin elección guardada sigue la preferencia del sistema. Las vistas nuevas usan variantes `dark:`; el bloque final de `app.css` adapta las vistas antiguas.
+- Gráficas: componente `<x-chart :config="[...]" />` (Chart.js, `resources/js/charts.js`).
+- Búsqueda global: Ctrl+K o el botón "Buscar" del menú (`app/Livewire/BusquedaGlobal.php`).
+- Fichas de solo lectura: `/investigadores/{id}`, `/estructura/grupos-investigacion/{código}` y `/publicaciones/{id}`.
 - El menú lateral se define una sola vez en `resources/views/components/sidebar-menu.blade.php`.
 - Avisos flotantes: `$this->dispatch('notify', type: 'success', message: '...')` desde Livewire, o `session()->flash('status', '...')` con `<x-flash-status />` en la vista.
 - Confirmaciones: `$dispatch('confirmar', { message: '...', action: () => $wire.delete(id) })` desde un botón.

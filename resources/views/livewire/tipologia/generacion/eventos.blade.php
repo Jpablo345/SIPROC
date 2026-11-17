@@ -392,9 +392,7 @@ new class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="table-empty">
-                                No hay eventos registrados todavía.
-                            </td>
+                            <td colspan="10"><x-empty-state icon="megaphone" message="No hay eventos registrados todavía." /></td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -80,9 +80,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="2" class="table-empty">
-                                    No hay tipos de libro registrados todavía.
-                                </td>
+                                <td colspan="2"><x-empty-state icon="bookmark" message="No hay tipos de libro registrados todavía." /></td>
                             </tr>
                         @endforelse
                     </tbody>

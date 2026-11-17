@@ -206,17 +206,27 @@
                     <tbody class="bg-white" wire:key="publication-{{ $publication->publication_id }}" x-data="{ open: false }">
                         <tr class="align-top hover:bg-siproc-blush">
                             <td class="min-w-[16rem] px-4 py-3">
-                                <p class="font-semibold text-siproc-ink">{{ $publication->title }}</p>
-                                <p class="mt-1 text-xs text-slate-600">
-                                    @if ($authorNames->isEmpty())
-                                        Sin autores registrados
-                                    @else
-                                        {{ $authorNames->take(3)->implode(', ') }}
-                                        @if ($authorNames->count() > 3)
-                                            <span class="text-slate-400">y {{ $authorNames->count() - 3 }} más</span>
-                                        @endif
+                                <a href="{{ route('publicaciones.show', $publication->publication_id) }}" wire:navigate
+                                    class="font-semibold text-siproc-ink hover:text-siproc-red-dark dark:text-white dark:hover:text-red-300">{{ $publication->title }}</a>
+                                <div class="mt-1.5 flex items-center gap-2">
+                                    @if ($authors->isNotEmpty())
+                                        <div class="flex shrink-0 -space-x-2">
+                                            @foreach ($authors->take(3) as $autor)
+                                                <x-avatar :name="$autor->full_name" size="xs" class="ring-2 ring-white dark:ring-gray-900" />
+                                            @endforeach
+                                        </div>
                                     @endif
-                                </p>
+                                    <p class="text-xs text-slate-600">
+                                        @if ($authorNames->isEmpty())
+                                            Sin autores registrados
+                                        @else
+                                            {{ $authorNames->take(3)->implode(', ') }}
+                                            @if ($authorNames->count() > 3)
+                                                <span class="text-slate-400">y {{ $authorNames->count() - 3 }} más</span>
+                                            @endif
+                                        @endif
+                                    </p>
+                                </div>
                                 @if ($publication->scope || $publication->country_publication)
                                     <p class="mt-0.5 text-xs text-slate-500">
                                         {{ collect([$publication->scope, $publication->country_publication])->filter()->implode(' · ') }}
@@ -224,7 +234,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3">
-                                <span class="badge">{{ $publication->type?->type_name ?? '—' }}</span>
+                                <x-type-badge :name="$publication->type?->type_name" />
                             </td>
                             <td class="px-4 py-3 text-slate-600">{{ $publication->publication_year ?? '—' }}</td>
                             <td class="hidden min-w-[10rem] px-4 py-3 text-slate-600 xl:table-cell">{{ $groups }}</td>

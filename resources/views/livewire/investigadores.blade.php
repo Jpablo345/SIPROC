@@ -274,9 +274,12 @@ new class extends Component {
                     @forelse ($this->researchers as $researcher)
                         <tr wire:key="researcher-{{ $researcher->researcher_id }}" class="hover:bg-siproc-blush">
                             <td class="px-4 py-3 font-semibold text-siproc-ink">{{ $researcher->document ?? '—' }}</td>
-                            <td class="px-4 py-3 text-slate-600">
-                                {{ $researcher->name_1 }} {{ $researcher->name_2 }} {{ $researcher->last_name_1 }}
-                                {{ $researcher->last_name_2 }}
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-3">
+                                    <x-avatar :name="$researcher->full_name" size="sm" />
+                                    <a href="{{ route('investigadores.show', $researcher->researcher_id) }}" wire:navigate
+                                        class="font-semibold text-siproc-ink hover:text-siproc-red-dark dark:text-white dark:hover:text-red-300">{{ $researcher->full_name }}</a>
+                                </div>
                             </td>
                             <td class="px-4 py-3 text-slate-600">
                                 <div>{{ $researcher->email ?? '—' }}</div>
@@ -298,9 +301,7 @@ new class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="table-empty">
-                                No hay investigadores registrados todavía.
-                            </td>
+                            <td colspan="5"><x-empty-state icon="users" message="No hay investigadores registrados todavía." /></td>
                         </tr>
                     @endforelse
                 </tbody>
