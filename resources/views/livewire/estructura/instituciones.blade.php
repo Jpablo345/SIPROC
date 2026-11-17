@@ -260,9 +260,7 @@ new class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="table-empty">
-                                No hay instituciones registradas todavía.
-                            </td>
+                            <td colspan="6"><x-empty-state icon="building-library" message="No hay instituciones registradas todavía." /></td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -229,7 +229,10 @@ new class extends Component {
                     @forelse ($this->groups as $group)
                         <tr wire:key="group-{{ $group->cod_minciencias }}" class="hover:bg-siproc-blush">
                             <td class="px-4 py-3 font-semibold text-siproc-ink">{{ $group->cod_minciencias }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $group->group_name }}</td>
+                            <td class="px-4 py-3">
+                                <a href="{{ route('estructura.grupos.show', $group->cod_minciencias) }}" wire:navigate
+                                    class="font-semibold text-siproc-ink hover:text-siproc-red-dark dark:text-white dark:hover:text-red-300">{{ $group->group_name }}</a>
+                            </td>
                             <td class="px-4 py-3 text-slate-600">{{ $group->group_classification ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $group->institution?->institution_name ?? '—' }}</td>
                             <td class="px-4 py-3 text-right">
@@ -247,9 +250,7 @@ new class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="table-empty">
-                                No hay grupos registrados todavía.
-                            </td>
+                            <td colspan="5"><x-empty-state icon="user-group" message="No hay grupos registrados todavía." /></td>
                         </tr>
                     @endforelse
                 </tbody>

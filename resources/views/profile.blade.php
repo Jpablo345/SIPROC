@@ -1,8 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-            {{ __('Perfil de Usuario') }}
-        </h2>
+        <div>
+            <p class="page-eyebrow">Cuenta</p>
+            <h2 class="page-title">{{ __('Mi perfil') }}</h2>
+        </div>
     </x-slot>
 
     <div class="py-6">

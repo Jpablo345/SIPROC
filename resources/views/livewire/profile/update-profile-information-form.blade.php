@@ -119,6 +119,30 @@ new class extends Component
             @endif
         </div>
 
+        {{-- Datos de la cuenta: solo lectura. El rol lo asigna el registro o un administrador. --}}
+        @php
+            $cuenta = auth()->user();
+            $tipoCuenta = match ($cuenta->user_type) {
+                'student' => 'Estudiante',
+                'teacher' => 'Docente',
+                default => null,
+            };
+        @endphp
+        <div class="grid gap-4 sm:grid-cols-3">
+            <div>
+                <p class="mb-1 block text-sm font-semibold text-gray-700">Rol</p>
+                <p class="mt-1"><span class="badge">{{ $cuenta->getRoleNames()->first() ?? 'Sin rol' }}</span></p>
+            </div>
+            <div>
+                <p class="mb-1 block text-sm font-semibold text-gray-700">Tipo de cuenta</p>
+                <p class="mt-1 text-sm text-gray-600">{{ $tipoCuenta ?? '—' }}</p>
+            </div>
+            <div>
+                <p class="mb-1 block text-sm font-semibold text-gray-700">Código</p>
+                <p class="mt-1 text-sm text-gray-600">{{ $cuenta->code ?? '—' }}</p>
+            </div>
+        </div>
+
         <div class="flex items-center gap-4 pt-2">
             <button 
                 type="submit" 
