@@ -350,7 +350,7 @@ new class extends Component {
                 <tbody class="table-body">
                     @forelse ($this->books as $book)
                         <tr wire:key="book-{{ $book->publication_id }}" class="hover:bg-siproc-blush">
-                            <td class="px-4 py-3 font-semibold text-siproc-ink">{{ $book->publication?->title }}</td>
+                            <td class="px-4 py-3 font-semibold text-siproc-ink"><a href="{{ route('publicaciones.show', $book->publication_id) }}" wire:navigate class="hover:text-siproc-red-dark dark:hover:text-red-300">{{ $book->publication?->title }}</a></td>
                             <td class="px-4 py-3 text-slate-600">{{ $book->book_isbn }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $book->means_of_dissemination ?? '—' }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $book->publication?->publication_year ?? '—' }}</td>
@@ -399,9 +399,7 @@ new class extends Component {
                     @empty
                         <tr>
                             {{-- Colspan ajustado a 12 columnas --}}
-                            <td colspan="12" class="table-empty">
-                                No hay libros registrados todavía.
-                            </td>
+                            <td colspan="12"><x-empty-state icon="book-open" message="No hay libros registrados todavía." /></td>
                         </tr>
                     @endforelse
                 </tbody>

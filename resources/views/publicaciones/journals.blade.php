@@ -117,9 +117,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="table-empty">
-                                    No hay revistas registradas todavía.
-                                </td>
+                                <td colspan="4"><x-empty-state icon="newspaper" message="No hay revistas registradas todavía." /></td>
                             </tr>
                         @endforelse
                     </tbody>

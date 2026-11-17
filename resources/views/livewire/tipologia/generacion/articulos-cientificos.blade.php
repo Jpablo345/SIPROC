@@ -335,7 +335,7 @@ new class extends Component {
                         <tr wire:key="article-{{ $article->publication_id }}" class="hover:bg-siproc-blush">
                             
                             {{-- 1. Titulo --}}
-                            <td class="px-4 py-3 font-semibold text-siproc-ink">{{ $article->publication?->title }}</td>
+                            <td class="px-4 py-3 font-semibold text-siproc-ink"><a href="{{ route('publicaciones.show', $article->publication_id) }}" wire:navigate class="hover:text-siproc-red-dark dark:hover:text-red-300">{{ $article->publication?->title }}</a></td>
                             
                             {{-- 2. Ano --}}
                             <td class="px-4 py-3 text-slate-600">{{ $article->publication?->publication_year ?? '—' }}</td>
@@ -406,9 +406,7 @@ new class extends Component {
                     @empty
                         <tr>
                            
-                            <td colspan="13" class="table-empty">
-                                No hay artículos registrados todavía.
-                            </td>
+                            <td colspan="13"><x-empty-state icon="newspaper" message="No hay artículos registrados todavía." /></td>
                         </tr>
                     @endforelse
                 </tbody>

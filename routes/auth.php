@@ -14,7 +14,8 @@ Route::middleware('guest')->group(function () {
     Volt::route('forgot-password', 'pages.auth.forgot-password')
         ->name('password.request');
 
-    Volt::route('reset-password/{token}', 'pages.auth.reset-password')
+    // La contraseña ahora se restablece con un código por correo. Los enlaces enviados antes llevan a esa pantalla.
+    Route::redirect('reset-password/{token}', '/forgot-password')
         ->name('password.reset');
 });
 

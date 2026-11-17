@@ -1,0 +1,76 @@
+SIPROC - Sistema de producción científica (UFPSO)
+=================================================
+
+Esta carpeta tiene todo lo necesario para usar SIPROC en este computador.
+No hace falta instalar nada más que Docker Desktop.
+
+
+QUÉ HAY EN LA CARPETA
+---------------------
+  Iniciar SIPROC.bat    Enciende SIPROC y abre el navegador.
+  Detener SIPROC.bat    Apaga SIPROC. Los datos se conservan.
+  Respaldar datos.bat   Guarda una copia de la base de datos en la carpeta "respaldos".
+  siproc-app.tar        La aplicación. No lo abras ni lo borres.
+  compose.yaml          Configuración de los servicios. No lo modifiques.
+  .env                  Claves y configuración del correo. No lo compartas.
+
+
+ANTES DE EMPEZAR (una sola vez)
+-------------------------------
+1. Instala Docker Desktop desde https://www.docker.com/products/docker-desktop/
+   Al terminar reinicia el computador.
+2. Abre Docker Desktop y espera a que diga "Engine running".
+3. En Docker Desktop entra a Settings > General y activa
+   "Start Docker Desktop when you sign in". Así SIPROC arranca solo
+   cada vez que enciendes el computador.
+
+
+PRIMER USO
+----------
+1. Abre "Iniciar SIPROC.bat" con doble clic.
+2. La primera vez tarda unos minutos y te pide crear tu cuenta de administración:
+   nombre, correo, un código de 5 dígitos y una contraseña.
+   Anota el código: se pide junto al correo cada vez que inicias sesión.
+3. Se abre el navegador en http://localhost:8000. Entra con tu correo,
+   tu código y tu contraseña.
+
+
+USO DIARIO
+----------
+  - Si dejaste activada la opción del paso 3, solo abre el navegador en
+    http://localhost:8000. No hace falta abrir ningún archivo.
+  - Si la página no carga, abre Docker Desktop y luego "Iniciar SIPROC.bat".
+  - Otros equipos de la misma red pueden entrar con la dirección IP de este
+    computador, por ejemplo http://192.168.1.20:8000
+
+
+RESPALDOS
+---------
+Abre "Respaldar datos.bat" al menos una vez por semana. Crea un archivo
+siproc_FECHA.sql dentro de la carpeta "respaldos". Copia esos archivos
+fuera de este computador (USB, Drive o correo).
+
+
+ACTUALIZAR A UNA VERSIÓN NUEVA
+------------------------------
+1. Reemplaza siproc-app.tar por el nuevo que te entreguen.
+   No reemplaces el archivo .env.
+2. Abre "Iniciar SIPROC.bat". Tus datos se conservan.
+
+
+SI ALGO FALLA
+-------------
+  "Docker Desktop no está abierto"
+      Abre Docker Desktop, espera "Engine running" y vuelve a intentar.
+
+  La página dice que no se puede conectar
+      Abre "Iniciar SIPROC.bat" y espera a que diga "SIPROC está listo".
+
+  Los usuarios nuevos no reciben el código de registro
+      Falta configurar el correo en el archivo .env (MAIL_USERNAME,
+      MAIL_PASSWORD y MAIL_FROM_ADDRESS). Pide ayuda al equipo de desarrollo.
+
+  Cualquier otro problema
+      Abre una ventana de comandos en esta carpeta, ejecuta
+          docker compose logs app
+      y envía el resultado al equipo de desarrollo.

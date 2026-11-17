@@ -105,9 +105,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="table-empty">
-                                    No hay tipos registrados todavía.
-                                </td>
+                                <td colspan="4"><x-empty-state icon="tag" message="No hay tipos registrados todavía." /></td>
                             </tr>
                         @endforelse
                     </tbody>

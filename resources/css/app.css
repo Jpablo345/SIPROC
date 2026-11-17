@@ -12,7 +12,7 @@
 	}
 
 	body {
-		@apply bg-siproc-cream font-sans text-siproc-ink;
+		@apply bg-siproc-cream font-sans text-siproc-ink dark:bg-gray-950 dark:text-gray-100;
 	}
 
 	[x-cloak] {
@@ -22,40 +22,40 @@
 
 /*
  * Piezas visuales que se repiten en todas las pantallas.
- * Cambiar el estilo aquí lo cambia en toda la aplicación.
+ * Cambiar el estilo aquí lo cambia en toda la aplicación (también en modo oscuro).
  */
 @layer components {
 	/* Contenedores */
 	.card {
-		@apply rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm;
+		@apply rounded-2xl border border-siproc-line bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900;
 	}
 
 	/* Títulos */
 	.page-eyebrow {
-		@apply text-xs font-semibold uppercase tracking-[0.3em] text-siproc-red;
+		@apply text-xs font-semibold uppercase tracking-[0.25em] text-siproc-red dark:text-red-400;
 	}
 
 	.page-title {
-		@apply text-2xl font-semibold text-siproc-ink;
+		@apply font-display text-2xl font-bold text-siproc-ink sm:text-3xl dark:text-white;
 	}
 
 	.section-title {
-		@apply text-lg font-semibold text-siproc-ink;
+		@apply font-display text-lg font-bold text-siproc-ink dark:text-white;
 	}
 
 	.eyebrow {
-		@apply text-xs font-semibold uppercase tracking-[0.2em] text-siproc-red;
+		@apply text-xs font-semibold uppercase tracking-[0.2em] text-siproc-red dark:text-red-400;
 	}
 
 	/* Botones */
 	.btn {
-		@apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition
+		@apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition
 			focus:outline-none focus-visible:ring-2 focus-visible:ring-siproc-red focus-visible:ring-offset-2
-			disabled:cursor-not-allowed disabled:opacity-50;
+			disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-offset-gray-900;
 	}
 
 	.btn-sm {
-		@apply px-3 py-1;
+		@apply px-3 py-1.5 text-xs;
 	}
 
 	.btn-primary {
@@ -63,140 +63,250 @@
 	}
 
 	.btn-dark {
-		@apply bg-siproc-ink text-white shadow-sm hover:bg-siproc-ink-dark;
+		@apply bg-siproc-ink text-white shadow-sm hover:bg-siproc-ink-dark dark:bg-gray-700 dark:hover:bg-gray-600;
 	}
 
 	.btn-outline {
-		@apply border border-siproc-red/30 text-siproc-red-dark hover:bg-siproc-rose;
+		@apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50
+			dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800;
 	}
 
 	.btn-danger {
-		@apply border border-siproc-red-light/40 text-siproc-red hover:bg-siproc-rose;
+		@apply border border-siproc-red-light/40 bg-white text-siproc-red hover:bg-siproc-rose
+			dark:border-red-500/40 dark:bg-gray-900 dark:text-red-400 dark:hover:bg-red-500/10;
 	}
 
 	/* Formularios */
 	.form-label {
-		@apply block text-xs font-semibold uppercase tracking-[0.2em] text-slate-600;
+		@apply block text-xs font-semibold uppercase tracking-[0.15em] text-slate-600 dark:text-gray-400;
 	}
 
 	.field {
-		@apply rounded-md border-siproc-rose bg-white text-zinc-900 shadow-sm transition-colors
-			focus:border-siproc-red focus:ring-siproc-red;
+		@apply rounded-lg border-gray-300 bg-white text-zinc-900 shadow-sm transition-colors
+			focus:border-siproc-red focus:ring-siproc-red/30
+			dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500;
 	}
 
 	.field-check {
-		@apply rounded border-siproc-rose text-siproc-red focus:ring-siproc-red;
+		@apply rounded border-gray-300 text-siproc-red focus:ring-siproc-red dark:border-gray-600 dark:bg-gray-800;
 	}
 
 	/* Tablas */
 	.table-wrap {
-		@apply overflow-x-auto rounded-2xl border border-siproc-line transition-opacity;
+		@apply overflow-x-auto rounded-xl border border-siproc-line transition-opacity dark:border-gray-800;
 	}
 
 	.data-table {
-		@apply min-w-full divide-y divide-siproc-line text-sm;
+		@apply min-w-full divide-y divide-siproc-line text-sm dark:divide-gray-800;
 	}
 
 	.table-head {
-		@apply bg-siproc-blush text-left text-xs font-semibold uppercase tracking-[0.2em] text-siproc-red-dark;
+		@apply bg-siproc-blush text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:bg-gray-800/60 dark:text-gray-400;
 	}
 
 	.table-body {
-		@apply divide-y divide-siproc-line bg-white;
+		@apply divide-y divide-siproc-line bg-white dark:divide-gray-800 dark:bg-gray-900;
 	}
 
 	.table-empty {
-		@apply px-4 py-6 text-center text-sm text-slate-500;
+		@apply px-4 py-6 text-center text-sm text-slate-500 dark:text-gray-400;
 	}
 
 	/* Avisos */
 	.alert {
-		@apply rounded-xl bg-siproc-sand px-4 py-3 text-xs font-semibold text-siproc-red-dark;
+		@apply rounded-xl bg-siproc-sand px-4 py-3 text-xs font-semibold text-siproc-red-dark dark:bg-orange-500/10 dark:text-orange-300;
 	}
 
 	/* Insignias */
 	.badge {
-		@apply inline-flex items-center rounded-full bg-siproc-rose px-3 py-1 text-xs font-semibold text-siproc-red-dark;
+		@apply inline-flex items-center rounded-full bg-siproc-rose px-2.5 py-1 text-xs font-semibold text-siproc-red-dark
+			dark:bg-red-500/15 dark:text-red-300;
+	}
+
+	/*
+	 * Barra de desplazamiento delgada que solo se ve al pasar el mouse.
+	 * El color sale de la variable --scroll (por defecto, gris translúcido).
+	 */
+	.scroll-sutil {
+		scrollbar-width: thin;
+		scrollbar-color: transparent transparent;
+	}
+
+	.scroll-sutil:hover,
+	.scroll-sutil:focus-within {
+		scrollbar-color: var(--scroll, rgb(0 0 0 / 0.25)) transparent;
+	}
+
+	.scroll-sutil::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	.scroll-sutil::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	.scroll-sutil::-webkit-scrollbar-thumb {
+		border-radius: 9999px;
+		background-color: transparent;
+	}
+
+	.scroll-sutil:hover::-webkit-scrollbar-thumb {
+		background-color: var(--scroll, rgb(0 0 0 / 0.25));
+	}
+
+	/* Bloque gris animado que ocupa el lugar del contenido mientras carga */
+	.skeleton {
+		@apply animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800;
 	}
 }
 
-/* Opciones del widget de accesibilidad (resources/views/components/accessibility-widget.blade.php). */
-.siproc-contraste-invertido {
-	filter: invert(100%) hue-rotate(180deg) !important;
+/*
+ * Panel de accesibilidad (resources/views/components/accessibility-widget.blade.php).
+ * Cada ajuste es una clase a11y-* en <html>, aplicada por theme-script.blade.php.
+ */
+
+/* Tamaño del texto: escala la fuente raíz; todo lo medido en rem crece con ella sin desarmar el diseño. */
+html.a11y-texto-1 { font-size: 112.5%; }
+html.a11y-texto-2 { font-size: 125%; }
+html.a11y-texto-3 { font-size: 137.5%; }
+html.a11y-texto-4 { font-size: 150%; }
+
+/* Color: el filtro va en <html> para no mover los elementos fijos (avisos, botón flotante). */
+html.a11y-color-gris { filter: grayscale(1); }
+html.a11y-color-baja { filter: saturate(0.45); }
+html.a11y-color-alta { filter: saturate(1.8); }
+
+/* Alto contraste: textos secundarios más oscuros (o más claros en modo oscuro) y bordes visibles. */
+html.a11y-contraste body { color: #000; }
+html.a11y-contraste :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-gray-400, .text-gray-500, .text-gray-600, .text-zinc-500, .text-zinc-600) { color: #1f2937 !important; }
+html.a11y-contraste :is(.border-siproc-line, .border-gray-100, .border-gray-200, .border-zinc-200, .border-slate-200) { border-color: #6b7280 !important; }
+html.a11y-contraste :is(.card, .field, .table-wrap) { border-width: 2px; border-color: #374151 !important; }
+html.a11y-contraste ::placeholder { color: #4b5563 !important; opacity: 1; }
+html.a11y-contraste.dark body { color: #fff; }
+html.a11y-contraste.dark :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-gray-400, .text-gray-500, .text-gray-600, .text-zinc-500, .text-zinc-600) { color: #e5e7eb !important; }
+html.a11y-contraste.dark :is(.border-siproc-line, .border-gray-100, .border-gray-200, .border-zinc-200, .border-slate-200, .border-gray-700, .border-gray-800) { border-color: #9ca3af !important; }
+html.a11y-contraste.dark :is(.card, .field, .table-wrap) { border-color: #d1d5db !important; }
+html.a11y-contraste.dark ::placeholder { color: #d1d5db !important; }
+
+/* Fuente de lectura fácil (se descarga solo al activarla). */
+html.a11y-fuente body,
+html.a11y-fuente body :is(p, span, a, li, td, th, label, input, select, textarea, button, h1, h2, h3, h4, dt, dd) {
+	font-family: "Atkinson Hyperlegible", "Open Sans", system-ui, sans-serif !important;
 }
 
-.siproc-contraste-invertido img {
-	filter: invert(100%) hue-rotate(180deg) !important;
+/* Espaciado de texto según WCAG 1.4.12. */
+html.a11y-espaciado body :is(p, span, a, li, td, th, label, dt, dd, h1, h2, h3, h4) {
+	letter-spacing: 0.12em !important;
+	word-spacing: 0.16em !important;
+	line-height: 1.6 !important;
 }
+html.a11y-espaciado body p { margin-bottom: 0.5em; }
 
-.siproc-contraste-oscuro {
-	background: #000 !important;
-	color: #fff !important;
-}
-
-.siproc-contraste-oscuro * {
-	background-color: #000 !important;
-	color: #fff !important;
-	border-color: #555 !important;
-}
-
-.siproc-contraste-claro {
-	background: #fff !important;
-	color: #000 !important;
-}
-
-.siproc-contraste-claro * {
-	background-color: #fff !important;
-	color: #000 !important;
-	border-color: #ccc !important;
-}
-
-.siproc-texto-1 {
-	zoom: 1.1;
-}
-
-.siproc-texto-2 {
-	zoom: 1.25;
-}
-
-.siproc-texto-3 {
-	zoom: 1.5;
-}
-
-.siproc-saturacion-1 {
-	filter: saturate(30%) !important;
-}
-
-.siproc-saturacion-2 {
-	filter: saturate(0%) !important;
-}
-
-.siproc-saturacion-3 {
-	filter: saturate(200%) !important;
-}
-
-.siproc-enlaces a {
+/* Enlaces resaltados. */
+html.a11y-enlaces body a:not(.btn) {
 	text-decoration: underline !important;
-	font-weight: bold !important;
-	color: #1d4ed8 !important;
-	background: #dbeafe !important;
-	padding: 0 2px !important;
-	border-radius: 2px !important;
+	text-decoration-thickness: 2px !important;
+	text-underline-offset: 3px;
+	background-color: rgb(253 224 71 / 0.35);
+	border-radius: 3px;
 }
 
-.siproc-espaciado * {
-	letter-spacing: 0.1em !important;
-	word-spacing: 0.2em !important;
+/* Foco del teclado muy visible. */
+html.a11y-foco *:focus-visible {
+	outline: 3px solid #D21116 !important;
+	outline-offset: 3px !important;
+	box-shadow: 0 0 0 6px rgb(255 255 255 / 0.9) !important;
+}
+html.a11y-foco.dark *:focus-visible { box-shadow: 0 0 0 6px rgb(17 24 39 / 0.9) !important; }
+
+/* Cursor grande. */
+html.a11y-cursor,
+html.a11y-cursor * {
+	cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24'%3E%3Cpath d='M4 2l15 12h-7l4 8-3 1.5-4-8-5 5z' fill='%23111827' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 6 3, auto !important;
 }
 
-.siproc-dislexia {
-	font-family: 'Comic Sans MS', cursive !important;
+/* Reducir movimiento. */
+html.a11y-movimiento *,
+html.a11y-movimiento *::before,
+html.a11y-movimiento *::after {
+	animation-duration: 0.01ms !important;
+	animation-iteration-count: 1 !important;
+	transition-duration: 0.01ms !important;
+	scroll-behavior: auto !important;
 }
 
-.siproc-line-height {
-	line-height: 2 !important;
+/* Ocultar imágenes (el logo y los íconos se mantienen para no perder la orientación). */
+html.a11y-imagenes main img { visibility: hidden !important; }
+
+/*
+ * Modo oscuro para las vistas que usan colores claros sueltos (bg-white, text-slate-600, etc.).
+ * Las piezas nuevas traen sus propias variantes dark:, que usan estos mismos tonos.
+ * Si una vista nueva necesita otro tono en oscuro, usa dark: en la vista en lugar de agregar reglas aquí.
+ */
+.dark {
+	color-scheme: dark;
 }
 
-.siproc-sin-imagenes img {
-	visibility: hidden !important;
-}
+/* Fondos */
+.dark .bg-white { background-color: theme('colors.gray.900'); }
+.dark .bg-white\/80,
+.dark .bg-white\/60 { background-color: rgb(17 24 39 / 0.85); }
+.dark .bg-siproc-cream { background-color: theme('colors.gray.950'); }
+.dark .bg-gray-50,
+.dark .bg-zinc-50,
+.dark .bg-siproc-blush { background-color: rgb(31 41 55 / 0.55); }
+.dark .bg-gray-100 { background-color: theme('colors.gray.800'); }
+.dark .bg-gray-200 { background-color: theme('colors.gray.700'); }
+.dark .bg-siproc-rose { background-color: rgb(239 68 68 / 0.15); }
+.dark .bg-siproc-sand { background-color: rgb(249 115 22 / 0.12); }
+
+.dark .hover\:bg-siproc-blush:hover,
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover,
+.dark .hover\:bg-zinc-100:hover,
+.dark .hover\:bg-slate-100:hover,
+.dark .focus\:bg-gray-50:focus,
+.dark .focus\:bg-gray-100:focus { background-color: theme('colors.gray.800'); }
+.dark .hover\:bg-siproc-rose:hover,
+.dark .focus\:bg-siproc-rose:focus { background-color: rgb(239 68 68 / 0.15); }
+
+/* Textos */
+.dark .text-siproc-ink,
+.dark .text-gray-900,
+.dark .text-gray-800 { color: theme('colors.gray.50'); }
+.dark .text-slate-700,
+.dark .text-gray-700,
+.dark .text-zinc-700 { color: theme('colors.gray.200'); }
+.dark .text-slate-600,
+.dark .text-gray-600,
+.dark .text-zinc-600 { color: theme('colors.gray.300'); }
+.dark .text-slate-500,
+.dark .text-gray-500,
+.dark .text-zinc-500 { color: theme('colors.gray.400'); }
+.dark .text-slate-400,
+.dark .text-gray-400,
+.dark .text-zinc-400 { color: theme('colors.gray.500'); }
+.dark .text-siproc-red { color: theme('colors.red.400'); }
+.dark .text-siproc-red-dark,
+.dark .focus\:text-siproc-red-dark:focus,
+.dark .hover\:text-siproc-red-dark:hover,
+.dark .hover\:text-siproc-red:hover { color: theme('colors.red.300'); }
+.dark .hover\:text-gray-900:hover,
+.dark .hover\:text-gray-800:hover,
+.dark .hover\:text-gray-700:hover,
+.dark .hover\:text-slate-600:hover,
+.dark .hover\:text-black:hover { color: theme('colors.white'); }
+.dark .text-blue-600 { color: theme('colors.blue.400'); }
+.dark .text-green-600,
+.dark .text-green-700,
+.dark .text-emerald-700 { color: theme('colors.emerald.400'); }
+
+/* Bordes y divisores */
+.dark .border-siproc-line,
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-zinc-100,
+.dark .border-zinc-200,
+.dark .border-slate-200 { border-color: theme('colors.gray.800'); }
+.dark .border-gray-300 { border-color: theme('colors.gray.700'); }
+.dark .divide-siproc-line > :not([hidden]) ~ :not([hidden]) { border-color: theme('colors.gray.800'); }
